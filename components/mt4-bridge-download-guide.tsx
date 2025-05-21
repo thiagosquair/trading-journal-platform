@@ -18,4 +18,5 @@ export default function MT4BridgeDownloadGuide() {
               className="w-full md:w-1/3 h-auto rounded-md"
             />
             <div>
-              <h3 className="text-xl font-semibold mb-2">MT\
+             <h3 className="text-xl font-semibold mb-2">MT4 Bridge Installer</h3>
+
