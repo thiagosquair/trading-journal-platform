@@ -1,129 +1,143 @@
-import type { PlatformAdapter, ConnectionCredentials } from "./platform-adapter"
-import type { TradingAccount, Trade } from "@/lib/trading-types"
-import {
-  connectToMT5,
-  fetchMT5AccountData,
-  fetchMT5Trades,
-  convertMT5AccountToTradingAccount,
-  convertMT5TradesToTrades,
-} from "@/lib/mt5-api-client"
+// src/lib/platforms/metatrader-adapter.ts
+
+import { PlatformAdapter, ConnectionCredentials } from "./platform-adapter";
+import { TradingAccount, Trade } from "@/lib/trading-types";
+import metaApiService from "./metaapi-service";
 
 export class MetaTraderAdapter implements PlatformAdapter {
-  name: string
-  private server: string | null = null
-  private login: string | null = null
-  private password: string | null = null
-  private investorPassword: string | null = null
-  private broker: string | null = null
-  private isConnected = false
+  name: string;
+  private server: string | null = null;
+  private login: string | null = null;
+  private password: string | null = null;
+  private investorPassword: string | null = null;
+  private broker: string | null = null;
+  private isConnected = false;
 
   constructor(name: string) {
-    this.name = name
+    this.name = name;
+  }
+
+  async connectToMT5(accountId: string): Promise<boolean> {
+    if (!this.server || !this.login || !this.password) {
+      console.error("Missing credentials for MT5 connection");
+      return false;
+    }
+
+    try {
+      const result = await metaApiService.connectAccount({
+        login: this.login,
+        password: this.password,
+        server: this.server,
+        accountId
+      });
+
+      this.isConnected = result.success;
+      return result.success;
+    } catch (error) {
+      console.error("Error connecting to MT5:", error);
+      return false;
+    }
   }
 
   async connect(credentials: ConnectionCredentials): Promise<boolean> {
-    this.server = credentials.server || null
-    this.login = credentials.login || null
-    this.password = credentials.password || null
-    this.investorPassword = credentials.investorPassword || null
-    this.broker = credentials.broker || null
+    this.server = credentials.server || null;
+    this.login = credentials.login || null;
+    this.password = credentials.password || null;
+    this.investorPassword = credentials.investorPassword || null;
+    this.broker = credentials.broker || null;
 
-    if (!this.server || !this.login || !(this.password || this.investorPassword)) {
-      throw new Error("Server, login, and either password or investor password are required")
-    }
+    // Connect to MT5 using the account ID (you can use the login as the account ID)
+    return await this.connectToMT5(this.login as string);
+  }
 
+  async fetchMT5AccountData(accountId: string): Promise<TradingAccount | null> {
     try {
-      // Connect to MT5 using the API client
-      const isConnected = await connectToMT5({
-        server: this.server,
-        login: this.login,
-        password: this.password || this.investorPassword!,
-        isInvestor: !!this.investorPassword,
-      })
-
-      if (!isConnected) {
-        throw new Error("Failed to connect to MT5 server")
+      const accountInfo = await metaApiService.getAccountInformation(accountId);
+      
+      if (!accountInfo) {
+        return null;
       }
 
-      this.isConnected = true
-      return true
+      // Convert MT5 account data to your TradingAccount interface
+      return {
+        name: accountInfo.name || this.name,
+        server: this.server || "",
+        balance: accountInfo.balance,
+        equity: accountInfo.equity,
+        margin: accountInfo.margin,
+        freeMargin: accountInfo.freeMargin,
+        leverage: accountInfo.leverage,
+        currency: accountInfo.currency,
+        openPositions: accountInfo.openPositions || 0,
+        profit: accountInfo.profit || 0,
+        // Add other fields as needed
+      };
     } catch (error) {
-      console.error(`${this.name} connection error:`, error)
-      throw error
+      console.error("Error fetching MT5 account data:", error);
+      return null;
     }
   }
 
-  async fetchAccounts(): Promise<TradingAccount[]> {
-    if (!this.isConnected || !this.server || !this.login) {
-      throw new Error("Not connected to MetaTrader")
+  async getAccount(): Promise<TradingAccount | null> {
+    if (!this.isConnected || !this.login) {
+      return null;
+    }
+
+    return await this.fetchMT5AccountData(this.login);
+  }
+
+  async fetchMT5Trades(accountId: string): Promise<Trade[]> {
+    try {
+      // Get the last 90 days of trading history
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 90);
+
+      const history = await metaApiService.getTradeHistory(accountId, startDate, endDate);
+      
+      if (!history || !history.deals) {
+        return [];
+      }
+
+      // Convert MT5 deals to your Trade interface
+      return history.deals.map((deal: any) => ({
+        id: deal.id || deal.ticket || "",
+        symbol: deal.symbol || "",
+        type: deal.type || "",
+        openTime: deal.time ? new Date(deal.time) : new Date(),
+        closeTime: deal.time ? new Date(deal.time) : new Date(),
+        openPrice: deal.price || 0,
+        closePrice: deal.price || 0,
+        volume: deal.volume || 0,
+        profit: deal.profit || 0,
+        // Add other fields as needed
+      }));
+    } catch (error) {
+      console.error("Error fetching MT5 trades:", error);
+      return [];
+    }
+  }
+
+  async getTrades(): Promise<Trade[]> {
+    if (!this.isConnected || !this.login) {
+      return [];
+    }
+
+    return await this.fetchMT5Trades(this.login);
+  }
+
+  async disconnect(): Promise<boolean> {
+    if (!this.isConnected || !this.login) {
+      return true;
     }
 
     try {
-      // Fetch account data using the API client
-      const mt5Account = await fetchMT5AccountData(this.server, this.login)
-
-      // Convert to our internal format
-      const account = convertMT5AccountToTradingAccount(
-        mt5Account,
-        this.login === "536407" ? "Alvar Teste" : `${this.broker || "MetaTrader"} Account`,
-      )
-
-      return [account]
+      const result = await metaApiService.disconnectAccount(this.login);
+      this.isConnected = !result.success;
+      return result.success;
     } catch (error) {
-      console.error(`Error fetching ${this.name} accounts:`, error)
-      throw error
+      console.error("Error disconnecting from MT5:", error);
+      return false;
     }
-  }
-
-  async fetchTrades(accountId: string): Promise<Trade[]> {
-    if (!this.isConnected || !this.server || !this.login) {
-      throw new Error("Not connected to MetaTrader")
-    }
-
-    try {
-      // Fetch trades using the API client
-      const mt5Trades = await fetchMT5Trades(this.server, this.login)
-
-      // Convert to our internal format
-      return convertMT5TradesToTrades(mt5Trades, accountId)
-    } catch (error) {
-      console.error(`Error fetching ${this.name} trades:`, error)
-      throw error
-    }
-  }
-
-  async syncAccount(accountId: string): Promise<void> {
-    if (!this.isConnected) {
-      throw new Error("Not connected to MetaTrader")
-    }
-
-    try {
-      // In a real implementation, we would sync with the MT5 API
-      // For now, we'll just refresh the account data and trades
-      await this.fetchAccounts()
-      await this.fetchTrades(accountId)
-    } catch (error) {
-      console.error(`Error syncing ${this.name} account:`, error)
-      throw error
-    }
-  }
-
-  async disconnect(accountId: string): Promise<void> {
-    // Clear session storage
-    if (this.login) {
-      sessionStorage.removeItem(`mt5_connection_${this.login}`)
-      sessionStorage.removeItem(`mt5_account_${this.login}`)
-      sessionStorage.removeItem(`mt5_trades_${this.login}`)
-    }
-
-    // Reset connection state
-    this.server = null
-    this.login = null
-    this.password = null
-    this.investorPassword = null
-    this.broker = null
-    this.isConnected = false
-
-    console.log(`Disconnected from ${this.name}`)
   }
 }
