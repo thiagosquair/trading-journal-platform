@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -7,8 +8,36 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ImageUpload } from "@/components/image-upload"
 import { ArrowLeft, Link2, Hash } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function NewPostClientPage() {
+  const { toast } = useToast()
+  const [images, setImages] = useState<string[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleImagesSelected = (selectedImages: string[]) => {
+    setImages(selectedImages)
+  }
+
+  const handleSaveDraft = () => {
+    toast({
+      title: "Draft saved",
+      description: "Your post has been saved as a draft.",
+    })
+  }
+
+  const handlePublish = () => {
+    setIsSubmitting(true)
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false)
+      toast({
+        title: "Post published!",
+        description: "Your post has been published successfully.",
+      })
+    }, 1500)
+  }
+
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex items-center mb-6">
@@ -45,7 +74,7 @@ export default function NewPostClientPage() {
 
               <div>
                 <Label>Add Images</Label>
-                <ImageUpload maxImages={4} onChange={() => {}} value={[]} />
+                <ImageUpload maxImages={4} onChange={handleImagesSelected} value={images} />
               </div>
 
               <div>
@@ -65,8 +94,12 @@ export default function NewPostClientPage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline">Save as Draft</Button>
-              <Button>Publish Post</Button>
+              <Button variant="outline" onClick={handleSaveDraft}>
+                Save as Draft
+              </Button>
+              <Button onClick={handlePublish} disabled={isSubmitting}>
+                {isSubmitting ? "Publishing..." : "Publish Post"}
+              </Button>
             </CardFooter>
           </Card>
         </div>
