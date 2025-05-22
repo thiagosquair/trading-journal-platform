@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import TradingAccountsClient from "./trading-accounts-client"
 
 export const metadata: Metadata = {
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function TradingAccountsPage() {
   return (
     <div className="container mx-auto py-8">
-      <TradingAccountsClient />
+      <Suspense fallback={<div className="text-center py-12">Loading trading accounts...</div>}>
+        <TradingAccountsClient />
+      </Suspense>
     </div>
   )
 }
