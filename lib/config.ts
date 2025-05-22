@@ -7,5 +7,5 @@ export const config = {
   CTRADER_PORT: process.env.CTRADER_PORT || '5035',
   
   // Feature flags
-  USE_MOCK_DATA: process.env.USE_MOCK_DATA || process.env.NODE_ENV === 'development' ? 'true' : 'false',
+  USE_MOCK_DATA: process.env.USE_MOCK_DATA || process.env.NODE_ENV === 'development' ? 'false',
 };
