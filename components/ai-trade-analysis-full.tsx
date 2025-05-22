@@ -317,3 +317,5 @@ export function AiTradeAnalysisFull({ trade, isLoading = false, onSaveToJournal 
     </Card>
   )
 }
+
+export { AiTradeAnalysisFull as AITradeAnalysisFull }

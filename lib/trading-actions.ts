@@ -110,3 +110,125 @@ export async function fetchTradeStatistics(accountId: string) {
     netProfit,
   }
 }
+
+export async function testConnection(accountDetails: any): Promise<{ success: boolean; message: string }> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // For demo purposes, always return success
+      resolve({ success: true, message: "Connection successful" })
+    }, 1000)
+  })
+}
+
+export async function testPlatformConnection(
+  platform: string,
+  credentials: any,
+): Promise<{ success: boolean; message: string }> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // For demo purposes, always return success
+      resolve({ success: true, message: `Connection to ${platform} successful` })
+    }, 1000)
+  })
+}
+
+export async function connectTradingAccount(
+  accountDetails: any,
+): Promise<{ success: boolean; accountId?: string; message: string }> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // For demo purposes, always return success
+      resolve({
+        success: true,
+        accountId: `acc-${Math.floor(Math.random() * 10000)}`,
+        message: "Account connected successfully",
+      })
+    }, 1500)
+  })
+}
+
+export async function fetchTradingAccounts(): Promise<any[]> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        {
+          id: "acc1",
+          name: "Demo MT5 Account",
+          platform: "MT5",
+          broker: "Demo Broker",
+          balance: 10000,
+          equity: 10050,
+          currency: "USD",
+          lastSynced: new Date().toISOString(),
+        },
+        {
+          id: "acc2",
+          name: "Demo MT4 Account",
+          platform: "MT4",
+          broker: "Demo Broker",
+          balance: 5000,
+          equity: 5025,
+          currency: "USD",
+          lastSynced: new Date().toISOString(),
+        },
+      ])
+    }, 800)
+  })
+}
+
+export async function fetchAccountById(accountId: string): Promise<any | null> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      if (accountId === "acc1") {
+        resolve({
+          id: "acc1",
+          name: "Demo MT5 Account",
+          platform: "MT5",
+          broker: "Demo Broker",
+          balance: 10000,
+          equity: 10050,
+          currency: "USD",
+          lastSynced: new Date().toISOString(),
+        })
+      } else if (accountId === "acc2") {
+        resolve({
+          id: "acc2",
+          name: "Demo MT4 Account",
+          platform: "MT4",
+          broker: "Demo Broker",
+          balance: 5000,
+          equity: 5025,
+          currency: "USD",
+          lastSynced: new Date().toISOString(),
+        })
+      } else {
+        resolve(null)
+      }
+    }, 500)
+  })
+}
+
+export async function getSupportedFeatures(platform: string): Promise<string[]> {
+  // Simulate API call
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const features = ["trade_history", "account_info", "positions", "orders"]
+
+      // Add platform-specific features
+      if (platform === "MT5" || platform === "MT4") {
+        features.push("expert_advisors")
+      }
+
+      if (platform === "cTrader") {
+        features.push("copy_trading")
+      }
+
+      resolve(features)
+    }, 300)
+  })
+}

@@ -188,3 +188,5 @@ export function AiTradeAnalysis({ trade, isLoading = false }: AiTradeAnalysisPro
     </Card>
   )
 }
+
+export { AiTradeAnalysis as AITradeAnalysis }

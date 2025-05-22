@@ -172,3 +172,5 @@ export function TradesTable({ trades = [], isLoading = false }: TradesTableProps
     </div>
   )
 }
+
+export default TradesTable
