@@ -1,34 +1,62 @@
-import type { Metadata } from "next"
-import { LiveTradeMonitor } from "@/components/live-trade-monitor"
-import { fetchAccountById } from "@/lib/trading-actions"
+'use client';
+import { useEffect, useState } from 'react';
+import { mt5Connector } from '../../mt5Connector';
 
-export const metadata: Metadata = {
-  title: "Live Trade Monitor",
-  description: "Real-time monitoring of your trading account",
-}
+export default function LiveMonitorPage({ params }) {
+  const { accountId } = params;
+  const [liveData, setLiveData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default async function LiveMonitorPage({ params }: { params: { id: string } }) {
-  const account = await fetchAccountById(params.id)
+  useEffect(() => {
+    async function fetchLiveData() {
+      try {
+        setLoading(true);
+        // Connect to the account if not already connected
+        if (!mt5Connector.connections[accountId]) {
+          await mt5Connector.connectToAccount(accountId);
+        }
+        
+        // Get live data
+        const data = await mt5Connector.getLiveData(accountId);
+        setLiveData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching live data:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  if (!account) {
-    return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-6">Account Not Found</h1>
-        <p>The requested trading account could not be found.</p>
-      </div>
-    )
-  }
+    fetchLiveData();
+    
+    // Set up interval to refresh data
+    const interval = setInterval(fetchLiveData, 5000);
+    
+    // Clean up
+    return () => clearInterval(interval);
+  }, [accountId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!liveData) return <div>No data available</div>;
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{account.name}</h1>
-        <p className="text-muted-foreground">
-          {account.platform} • Account #{account.accountNumber}
-        </p>
+    <div>
+      <h1>Live Monitor for Account {accountId}</h1>
+      <div>
+        <h2>Account Information</h2>
+        <pre>{JSON.stringify(liveData.accountInfo, null, 2)}</pre>
       </div>
-
-      <LiveTradeMonitor accountId={params.id} platform={account.platform} />
+      <div>
+        <h2>Positions</h2>
+        <pre>{JSON.stringify(liveData.positions, null, 2)}</pre>
+      </div>
+      <div>
+        <h2>Orders</h2>
+        <pre>{JSON.stringify(liveData.orders, null, 2)}</pre>
+      </div>
     </div>
-  )
+  );
 }
