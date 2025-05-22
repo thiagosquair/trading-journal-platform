@@ -7,6 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+      "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "npm install metaapi.cloud-sdk@5.0.0 --legacy-peer-deps"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
