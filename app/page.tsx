@@ -485,126 +485,126 @@ export default function LandingPage() {
 
       {/* Trading Platform Integration Section */}
       {/*
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-white">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-4 px-4 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
-              NEW INTEGRATIONS
-            </div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Trading Platform
-              </span>{" "}
-              Integrations
-            </h2>
-            <p className="mt-4 mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Connect your trading accounts directly to TradeLinx for automatic trade synchronization and real-time
-              performance tracking.
-            </p>
-          </div>
+     <section className="py-20 px-4 md:px-6 lg:px-8 bg-white">
+       <div className="container mx-auto max-w-7xl">
+         <div className="text-center mb-16">
+           <div className="inline-block mb-4 px-4 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
+             NEW INTEGRATIONS
+           </div>
+           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+               Trading Platform
+             </span>{" "}
+             Integrations
+           </h2>
+           <p className="mt-4 mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+             Connect your trading accounts directly to TradeLinx for automatic trade synchronization and real-time
+             performance tracking.
+           </p>
+         </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <Repeat className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">MetaTrader 4/5</h3>
-                <p className="text-slate-600 mb-4">
-                  Connect your MT4 or MT5 accounts for automatic trade synchronization and performance tracking.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Secure API connection</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Real-time trade synchronization</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Historical trade import</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/trading-accounts/new-account">Connect Account</Link>
-                </Button>
-              </div>
-            </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+             <div className="p-6">
+               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                 <Repeat className="h-6 w-6 text-blue-600" />
+               </div>
+               <h3 className="text-xl font-bold mb-2">MetaTrader 4/5</h3>
+               <p className="text-slate-600 mb-4">
+                 Connect your MT4 or MT5 accounts for automatic trade synchronization and performance tracking.
+               </p>
+               <ul className="space-y-2 mb-6">
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Secure API connection</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Real-time trade synchronization</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Historical trade import</span>
+                 </li>
+               </ul>
+               <Button variant="outline" className="w-full" asChild>
+                 <Link href="/trading-accounts/new-account">Connect Account</Link>
+               </Button>
+             </div>
+           </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
-                  <Layers className="h-6 w-6 text-indigo-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">DXtrade</h3>
-                <p className="text-slate-600 mb-4">
-                  Connect your DXtrade Standard or Pro accounts for seamless trade tracking and analysis.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">OAuth authentication</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Automatic position tracking</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Account performance metrics</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/trading-accounts/test-integration">Connect Account</Link>
-                </Button>
-              </div>
-            </div>
+           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+             <div className="p-6">
+               <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+                 <Layers className="h-6 w-6 text-indigo-600" />
+               </div>
+               <h3 className="text-xl font-bold mb-2">DXtrade</h3>
+               <p className="text-slate-600 mb-4">
+                 Connect your DXtrade Standard or Pro accounts for seamless trade tracking and analysis.
+               </p>
+               <ul className="space-y-2 mb-6">
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">OAuth authentication</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Automatic position tracking</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Account performance metrics</span>
+                 </li>
+               </ul>
+               <Button variant="outline" className="w-full" asChild>
+                 <Link href="/trading-accounts/test-integration">Connect Account</Link>
+               </Button>
+             </div>
+           </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <Gauge className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">TradingView</h3>
-                <p className="text-slate-600 mb-4">
-                  Import your TradingView charts and analysis directly into your trading journal.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Chart screenshot import</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Pine Script strategy import</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 text-indigo-600">✓</div>
-                    <span className="text-slate-700 text-sm">Indicator settings sync</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/trading-accounts">Connect Account</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+             <div className="p-6">
+               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                 <Gauge className="h-6 w-6 text-blue-600" />
+               </div>
+               <h3 className="text-xl font-bold mb-2">TradingView</h3>
+               <p className="text-slate-600 mb-4">
+                 Import your TradingView charts and analysis directly into your trading journal.
+               </p>
+               <ul className="space-y-2 mb-6">
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Chart screenshot import</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Pine Script strategy import</span>
+                 </li>
+                 <li className="flex items-start">
+                   <div className="mr-2 mt-1 text-indigo-600">✓</div>
+                   <span className="text-slate-700 text-sm">Indicator settings sync</span>
+                 </li>
+               </ul>
+               <Button variant="outline" className="w-full" asChild>
+                 <Link href="/trading-accounts">Connect Account</Link>
+               </Button>
+             </div>
+           </div>
+         </div>
 
-          <div className="mt-12 text-center">
-            <Button
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              asChild
-            >
-              <Link href="/trading-accounts">
-                View All Integrations <ChevronRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-      */}
+         <div className="mt-12 text-center">
+           <Button
+             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+             asChild
+           >
+             <Link href="/trading-accounts">
+               View All Integrations <ChevronRight className="ml-2 h-4 w-4" />
+             </Link>
+           </Button>
+         </div>
+       </div>
+     </section>
+     */}
 
       {/* Broker Integrations Section */}
       <section className="py-16 bg-gradient-to-b from-slate-50 to-white">

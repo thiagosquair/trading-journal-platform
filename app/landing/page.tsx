@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import HeroVideo from "@/components/hero-video"
 import { BacktestingFeature } from "@/components/features/backtesting-feature"
+import BacktestingSection from "./backtesting-section"
 
 export default function LandingPage() {
   return (
@@ -171,6 +172,79 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Backtesting Feature Section */}
+        <section className="py-12 md:py-16 bg-white">
+          <div className="container px-4 mx-auto">
+            <div className="inline-flex h-8 items-center rounded-full bg-blue-50 px-4 text-sm font-medium text-blue-600">
+              NEW FEATURE
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                  <span className="text-blue-600">Advanced</span> Strategy Backtesting
+                </h2>
+
+                <p className="mt-4 text-gray-600">
+                  Test your trading strategies against historical data to validate performance before risking real
+                  capital. Our powerful backtesting engine provides comprehensive analytics and optimization tools.
+                </p>
+
+                <div className="mt-8 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                      <History className="h-3.5 w-3.5 text-blue-600" />
+                    </div>
+                    <span>Backtest across multiple timeframes and instruments</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                      <LineChart className="h-3.5 w-3.5 text-blue-600" />
+                    </div>
+                    <span>Detailed performance metrics and equity curves</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                      <BarChart2 className="h-3.5 w-3.5 text-blue-600" />
+                    </div>
+                    <span>Strategy optimization and parameter tuning</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                      <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                    </div>
+                    <span>Monte Carlo simulations for risk assessment</span>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                    <Link href="/backtesting">
+                      Try Backtesting <ArrowUpRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative rounded-xl overflow-hidden">
+                <Image
+                  src="/backtesting-dashboard.png"
+                  alt="Backtesting Dashboard"
+                  width={600}
+                  height={400}
+                  className="w-full h-auto object-cover rounded-lg border shadow-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Backtesting Section */}
+        <BacktestingSection />
 
         {/* Advanced Strategy Backtesting Section */}
         <section className="py-12 md:py-24 lg:py-32">
