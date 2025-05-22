@@ -10,7 +10,7 @@ interface AccountPerformanceProps {
   trades: Trade[]
 }
 
-export default function AccountPerformance({ accountId, trades }: AccountPerformanceProps) {
+export function AccountPerformance({ accountId, trades }: AccountPerformanceProps) {
   // Calculate performance metrics
   const closedTrades = trades.filter((trade) => trade.status === "closed")
 

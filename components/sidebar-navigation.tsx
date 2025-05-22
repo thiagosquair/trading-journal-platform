@@ -23,6 +23,7 @@ import {
   Brain,
   GraduationCap,
   HelpCircle,
+  History,
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -168,6 +169,14 @@ function TradingSidebar() {
                   <Link href="/social">
                     <Users />
                     <span>Social</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/backtesting")}>
+                  <Link href="/backtesting">
+                    <History />
+                    <span>Backtesting</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

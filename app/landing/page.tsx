@@ -14,12 +14,15 @@ import {
   Shield,
   ArrowUpRight,
   BrainCircuit,
+  History,
+  TrendingUp,
 } from "lucide-react"
 import HeroVideo from "@/components/hero-video"
+import { BacktestingFeature } from "@/components/features/backtesting-feature"
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen landing-page">
       {/* Announcement Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 text-center relative">
         <p className="text-sm font-medium">
@@ -169,6 +172,78 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Advanced Strategy Backtesting Section */}
+        <section className="py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="flex flex-col gap-4">
+              <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600 border-blue-100 w-fit">
+                NEW FEATURE
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 lg:gap-12">
+                <div className="flex flex-col justify-center space-y-4">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                      <span className="text-blue-600">Advanced</span> Strategy Backtesting
+                    </h2>
+                    <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                      Test your trading strategies against historical data to validate performance before risking real
+                      capital. Our powerful backtesting engine provides comprehensive analytics and optimization tools.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                    <Link
+                      href="/backtesting"
+                      className="inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700"
+                    >
+                      Try Backtesting
+                      <ArrowUpRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex items-start gap-2">
+                      <History className="h-5 w-5 text-blue-600" />
+                      <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">Multi-timeframe Testing</p>
+                        <p className="text-sm text-gray-500">Backtest across multiple timeframes and instruments</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <LineChart className="h-5 w-5 text-blue-600" />
+                      <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">Detailed Performance Metrics</p>
+                        <p className="text-sm text-gray-500">Comprehensive performance metrics and equity curves</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <BarChart2 className="h-5 w-5 text-blue-600" />
+                      <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">Strategy Optimization</p>
+                        <p className="text-sm text-gray-500">Optimize parameters for maximum performance</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-600" />
+                      <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">Monte Carlo Simulation</p>
+                        <p className="text-sm text-gray-500">Assess risk with advanced statistical analysis</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center">
+                  <Image
+                    src="/backtesting-dashboard.png"
+                    alt="Backtesting Dashboard"
+                    width={550}
+                    height={400}
+                    className="rounded-lg border shadow-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* AI Trade Analysis Section */}
         <section className="py-20 bg-gradient-to-b from-white to-slate-50">
           <div className="container mx-auto px-4">
@@ -231,6 +306,13 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Backtesting Feature Section */}
+        <section className="py-20 bg-white feature-section">
+          <div className="container mx-auto px-4">
+            <BacktestingFeature />
           </div>
         </section>
 
