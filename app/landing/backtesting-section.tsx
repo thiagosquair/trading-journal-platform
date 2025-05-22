@@ -77,3 +77,5 @@ export function BacktestingSection() {
     </section>
   )
 }
+
+export default BacktestingSection
