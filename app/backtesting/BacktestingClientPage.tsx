@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Play, Download } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
+import { useState } from "react"
 
 export function BacktestingClientPage() {
   const isMobile = useMobile()
+  const [selectedTab, setSelectedTab] = useState("backtest")
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
@@ -20,7 +22,7 @@ export function BacktestingClientPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="backtest" className="w-full">
+        <Tabs defaultValue={selectedTab} className="w-full" onValueChange={setSelectedTab}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="backtest">Backtest</TabsTrigger>
             <TabsTrigger value="optimization">Optimization</TabsTrigger>
