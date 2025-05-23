@@ -11,8 +11,8 @@ import { AlertCircle, CheckCircle2, Loader2, Shield, Key } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useRouter } from "next/navigation"
 
-export default function MT5LiveAccountConnector({ onSuccess }: { onSuccess?: () => void }) {
-  const router = useRouter()
+export default function MT5LiveAccountConnector({ onSuccess }: Props) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [error, setError] = useState<string | null>(null)
