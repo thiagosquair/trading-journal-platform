@@ -13,16 +13,16 @@ import Link from "next/link"
 // Import all platform connectors
 import MT4AccountConnector from "@/components/mt4-account-connector"
 import MT5AccountConnector from "@/components/mt5-account-connector"
-import DXtradeAccountConnector from "@/components/dxtrade-account-connector"
 import CTraderAccountConnector from "@/components/ctrader-account-connector"
-import GenericPlatformConnector from "@/components/generic-platform-connector" // Add this new import
+import DXtradeAccountConnector from "@/components/dxtrade-account-connector"
+import GenericPlatformConnector from "@/components/generic-platform-connector"
 
-// Platform-specific components
-const platformComponents = {
+// Platform-specific components mapping
+const platformComponents: Record<string, React.ComponentType<any>> = {
   mt4: MT4AccountConnector,
   mt5: MT5AccountConnector,
-  dxtrade: DXtradeAccountConnector,
   ctrader: CTraderAccountConnector,
+  dxtrade: DXtradeAccountConnector,
   tradingview: GenericPlatformConnector,
   ninjatrader: GenericPlatformConnector,
   tradestation: GenericPlatformConnector,
@@ -36,143 +36,98 @@ const platformComponents = {
   dxfeed: GenericPlatformConnector,
 }
 
+// Platform display names and descriptions
+const platformInfo: Record<string, { name: string; description: string }> = {
+  mt4: {
+    name: "MetaTrader 4",
+    description: "Connect your MT4 account to track your trading performance and analyze your trades",
+  },
+  mt5: {
+    name: "MetaTrader 5",
+    description: "Connect your MT5 account to track your trading performance and analyze your trades",
+  },
+  ctrader: {
+    name: "cTrader",
+    description: "Connect your cTrader account to track your trading performance and analyze your trades",
+  },
+  dxtrade: {
+    name: "DXtrade",
+    description: "Connect your DXtrade account to track your trading performance and analyze your trades",
+  },
+  tradingview: {
+    name: "TradingView",
+    description: "Connect your TradingView account to track your trading performance and analyze your trades",
+  },
+  ninjatrader: {
+    name: "NinjaTrader",
+    description: "Connect your NinjaTrader account to track your trading performance and analyze your trades",
+  },
+  tradestation: {
+    name: "TradeStation",
+    description: "Connect your TradeStation account to track your trading performance and analyze your trades",
+  },
+  thinkorswim: {
+    name: "ThinkOrSwim",
+    description: "Connect your ThinkOrSwim account to track your trading performance and analyze your trades",
+  },
+  interactivebrokers: {
+    name: "Interactive Brokers",
+    description: "Connect your Interactive Brokers account to track your trading performance and analyze your trades",
+  },
+  tradelocker: {
+    name: "TradeLocker",
+    description: "Connect your TradeLocker account to track your trading performance and analyze your trades",
+  },
+  matchtrader: {
+    name: "MatchTrader",
+    description: "Connect your MatchTrader account to track your trading performance and analyze your trades",
+  },
+  tradovate: {
+    name: "Tradovate",
+    description: "Connect your Tradovate account to track your trading performance and analyze your trades",
+  },
+  rithmic: {
+    name: "Rithmic",
+    description: "Connect your Rithmic account to track your trading performance and analyze your trades",
+  },
+  sierrachart: {
+    name: "Sierra Chart",
+    description: "Connect your Sierra Chart account to track your trading performance and analyze your trades",
+  },
+  dxfeed: {
+    name: "DXfeed",
+    description: "Connect your DXfeed account to track your trading performance and analyze your trades",
+  },
+}
+
 export default function UniversalPlatformConnector({ platform }: { platform: string }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [platformInfo, setPlatformInfo] = useState<{
-    name: string
-    description: string
-    component: React.ComponentType<any> | null
-  }>({
-    name: "",
-    description: "",
-    component: null,
-  })
+
+  // Normalize platform name
+  const normalizedPlatform = platform.toLowerCase()
+
+  // Get platform info
+  const info = platformInfo[normalizedPlatform] || {
+    name: normalizedPlatform.charAt(0).toUpperCase() + normalizedPlatform.slice(1),
+    description: `Connect your ${normalizedPlatform} account to track your trading performance`,
+  }
+
+  // Get platform component
+  const PlatformComponent = platformComponents[normalizedPlatform]
 
   useEffect(() => {
-    // Normalize platform name
-    const normalizedPlatform = platform.toLowerCase()
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+      if (!platformComponents[normalizedPlatform]) {
+        setError(`Platform "${platform}" is not fully supported yet`)
+      }
+    }, 500)
 
-    // Get platform info
-    switch (normalizedPlatform) {
-      case "mt4":
-        setPlatformInfo({
-          name: "MetaTrader 4",
-          description: "Connect your MT4 account to track your trading performance and analyze your trades",
-          component: platformComponents.mt4,
-        })
-        break
-      case "mt5":
-        setPlatformInfo({
-          name: "MetaTrader 5",
-          description: "Connect your MT5 account to track your trading performance and analyze your trades",
-          component: platformComponents.mt5,
-        })
-        break
-      case "dxtrade":
-        setPlatformInfo({
-          name: "DXtrade",
-          description: "Connect your DXtrade account to track your trading performance and analyze your trades",
-          component: platformComponents.dxtrade,
-        })
-        break
-      case "ctrader":
-        setPlatformInfo({
-          name: "cTrader",
-          description: "Connect your cTrader account to track your trading performance and analyze your trades",
-          component: platformComponents.ctrader,
-        })
-        break
-      case "tradingview":
-        setPlatformInfo({
-          name: "TradingView",
-          description: "Connect your TradingView account to track your trading performance and analyze your trades",
-          component: platformComponents.tradingview,
-        })
-        break
-      case "ninjatrader":
-        setPlatformInfo({
-          name: "NinjaTrader",
-          description: "Connect your NinjaTrader account to track your trading performance and analyze your trades",
-          component: platformComponents.ninjatrader,
-        })
-        break
-      case "tradestation":
-        setPlatformInfo({
-          name: "TradeStation",
-          description: "Connect your TradeStation account to track your trading performance and analyze your trades",
-          component: platformComponents.tradestation,
-        })
-        break
-      case "thinkorswim":
-        setPlatformInfo({
-          name: "ThinkOrSwim",
-          description: "Connect your ThinkOrSwim account to track your trading performance and analyze your trades",
-          component: platformComponents.thinkorswim,
-        })
-        break
-      case "interactivebrokers":
-        setPlatformInfo({
-          name: "Interactive Brokers",
-          description:
-            "Connect your Interactive Brokers account to track your trading performance and analyze your trades",
-          component: platformComponents.interactivebrokers,
-        })
-        break
-      case "tradelocker":
-        setPlatformInfo({
-          name: "TradeLocker",
-          description: "Connect your TradeLocker account to track your trading performance and analyze your trades",
-          component: platformComponents.tradelocker,
-        })
-        break
-      case "matchtrader":
-        setPlatformInfo({
-          name: "MatchTrader",
-          description: "Connect your MatchTrader account to track your trading performance and analyze your trades",
-          component: platformComponents.matchtrader,
-        })
-        break
-      case "tradovate":
-        setPlatformInfo({
-          name: "Tradovate",
-          description: "Connect your Tradovate account to track your trading performance and analyze your trades",
-          component: platformComponents.tradovate,
-        })
-        break
-      case "rithmic":
-        setPlatformInfo({
-          name: "Rithmic",
-          description: "Connect your Rithmic account to track your trading performance and analyze your trades",
-          component: platformComponents.rithmic,
-        })
-        break
-      case "sierrachart":
-        setPlatformInfo({
-          name: "Sierra Chart",
-          description: "Connect your Sierra Chart account to track your trading performance and analyze your trades",
-          component: platformComponents.sierrachart,
-        })
-        break
-      case "dxfeed":
-        setPlatformInfo({
-          name: "DXfeed",
-          description: "Connect your DXfeed account to track your trading performance and analyze your trades",
-          component: platformComponents.dxfeed,
-        })
-        break
-      default:
-        setError(`Platform "${platform}" is not supported yet`)
-        setPlatformInfo({
-          name: platform,
-          description: "",
-          component: null,
-        })
-    }
-
-    setIsLoading(false)
-  }, [platform])
+    return () => clearTimeout(timer)
+  }, [normalizedPlatform, platform])
 
   if (isLoading) {
     return (
@@ -182,12 +137,10 @@ export default function UniversalPlatformConnector({ platform }: { platform: str
     )
   }
 
-  const PlatformComponent = platformInfo.component
-
   return (
     <div className="container mx-auto py-6 max-w-3xl">
       <Button variant="ghost" className="mb-6" asChild>
-        <Link href="/trading-accounts/add-account">
+        <Link href="/trading-accounts">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Platform Selection
         </Link>
@@ -195,23 +148,33 @@ export default function UniversalPlatformConnector({ platform }: { platform: str
 
       <Card>
         <CardHeader>
-          <CardTitle>Connect {platformInfo.name} Account</CardTitle>
-          <CardDescription>{platformInfo.description}</CardDescription>
+          <CardTitle>Connect {info.name} Account</CardTitle>
+          <CardDescription>{info.description}</CardDescription>
         </CardHeader>
         <CardContent>
           {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="space-y-4">
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+              <p className="text-muted-foreground">
+                We're working on adding full support for {info.name}. Please check back soon or try another platform.
+              </p>
+              <div className="flex justify-center">
+                <Button asChild>
+                  <Link href="/trading-accounts">Go Back to Platform Selection</Link>
+                </Button>
+              </div>
+            </div>
           ) : PlatformComponent ? (
-            <PlatformComponent />
+            <PlatformComponent platformName={info.name} />
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                Connection for {platformInfo.name} is coming soon. Please check back later.
+                Connection for {info.name} is coming soon. Please check back later.
               </p>
               <Button asChild>
-                <Link href="/trading-accounts/add-account">Go Back</Link>
+                <Link href="/trading-accounts">Go Back</Link>
               </Button>
             </div>
           )}

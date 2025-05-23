@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import { useMobile } from "@/hooks/use-mobile"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
@@ -65,7 +64,6 @@ export function SidebarWrapper({ children }: { children: React.ReactNode }) {
 
 function TradingSidebar() {
   const pathname = usePathname()
-  const isMobile = useMobile()
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(`${path}/`)

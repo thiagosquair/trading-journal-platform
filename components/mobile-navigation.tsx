@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { useMobile } from "@/hooks/use-mobile"
 import {
   Award,
   BarChart3,
@@ -32,7 +31,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 export function MobileNavigation() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-  const isMobile = useMobile()
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(`${path}/`)

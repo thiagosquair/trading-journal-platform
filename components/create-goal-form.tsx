@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
 import { CalendarIcon, InfoIcon } from "lucide-react"
-import { useMobile } from "@/hooks/use-mobile"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -37,10 +36,9 @@ interface CreateGoalFormProps {
   preselectedMetric?: string
 }
 
-export function CreateGoalForm({ preselectedCategory, preselectedMetric }) {
+export function CreateGoalForm({ preselectedCategory, preselectedMetric }: CreateGoalFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isMobile = useMobile()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(
     preselectedCategory || searchParams.get("category") || GOAL_CATEGORIES[0].name.toLowerCase(),

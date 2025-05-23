@@ -1,289 +1,307 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { JournalEntry } from "@/lib/journal-types"
-import { getJournalStatistics } from "@/lib/journal-statistics"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import MonthlyMetricsSummary from "./monthly-metrics-summary"
+import DailyMetricsDetail from "./daily-metrics-detail"
+import { useState } from "react"
 
-interface JournalStatisticsDashboardProps {
-  entries?: JournalEntry[]
-  isLoading?: boolean
-}
+export function JournalStatisticsDashboard() {
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-export function JournalStatisticsDashboard({ entries = [], isLoading = false }: JournalStatisticsDashboardProps) {
-  const [activeTab, setActiveTab] = useState("overview")
-
-  // Safely get statistics, handling the case where entries might be undefined
-  const stats = getJournalStatistics(entries)
-
-  if (isLoading) {
-    return <div className="p-8 text-center">Loading statistics...</div>
-  }
-
-  if (!entries || entries.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Journal Statistics</CardTitle>
-          <CardDescription>No journal entries found. Add some trades to see statistics.</CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
-  // Transform data for charts
-  const winLossData = [
-    { name: "Winning", value: stats.winningTrades },
-    { name: "Losing", value: stats.losingTrades },
+  // Sample data for demonstration
+  const monthlyData = [
+    {
+      date: "2023-05-01",
+      profit: 450,
+      trades: 8,
+      winRate: 75,
+      winCount: 6,
+      lossCount: 2,
+      rMultiple: 2.1,
+      avgTradeSize: 5000,
+      maxDrawdown: 320,
+      sharpeRatio: 1.8,
+      avgTradeDuration: 45,
+      volume: 4.2,
+      commissions: 32,
+      bestTrade: 280,
+      worstTrade: -180,
+      tradingSession: "morning",
+    },
+    {
+      date: "2023-05-02",
+      profit: -120,
+      trades: 5,
+      winRate: 40,
+      winCount: 2,
+      lossCount: 3,
+      rMultiple: -0.8,
+      avgTradeSize: 4800,
+      maxDrawdown: 280,
+      sharpeRatio: 0.6,
+      avgTradeDuration: 38,
+      volume: 3.5,
+      commissions: 25,
+      bestTrade: 150,
+      worstTrade: -220,
+      tradingSession: "afternoon",
+    },
+    {
+      date: "2023-05-03",
+      profit: 320,
+      trades: 6,
+      winRate: 67,
+      winCount: 4,
+      lossCount: 2,
+      rMultiple: 1.6,
+      avgTradeSize: 5200,
+      maxDrawdown: 180,
+      sharpeRatio: 1.5,
+      avgTradeDuration: 52,
+      volume: 3.8,
+      commissions: 28,
+      bestTrade: 240,
+      worstTrade: -140,
+      tradingSession: "morning",
+    },
+    {
+      date: "2023-05-04",
+      profit: 180,
+      trades: 4,
+      winRate: 75,
+      winCount: 3,
+      lossCount: 1,
+      rMultiple: 1.2,
+      avgTradeSize: 4500,
+      maxDrawdown: 120,
+      sharpeRatio: 1.3,
+      avgTradeDuration: 35,
+      volume: 2.5,
+      commissions: 18,
+      bestTrade: 160,
+      worstTrade: -90,
+      tradingSession: "evening",
+    },
+    {
+      date: "2023-05-05",
+      profit: -80,
+      trades: 3,
+      winRate: 33,
+      winCount: 1,
+      lossCount: 2,
+      rMultiple: -0.5,
+      avgTradeSize: 4200,
+      maxDrawdown: 150,
+      sharpeRatio: 0.4,
+      avgTradeDuration: 42,
+      volume: 1.8,
+      commissions: 15,
+      bestTrade: 120,
+      worstTrade: -160,
+      tradingSession: "afternoon",
+    },
+    {
+      date: "2023-05-08",
+      profit: 280,
+      trades: 7,
+      winRate: 71,
+      winCount: 5,
+      lossCount: 2,
+      rMultiple: 1.8,
+      avgTradeSize: 5100,
+      maxDrawdown: 200,
+      sharpeRatio: 1.6,
+      avgTradeDuration: 48,
+      volume: 4.0,
+      commissions: 30,
+      bestTrade: 220,
+      worstTrade: -130,
+      tradingSession: "morning",
+    },
+    {
+      date: "2023-05-09",
+      profit: 150,
+      trades: 5,
+      winRate: 60,
+      winCount: 3,
+      lossCount: 2,
+      rMultiple: 1.0,
+      avgTradeSize: 4800,
+      maxDrawdown: 160,
+      sharpeRatio: 1.2,
+      avgTradeDuration: 40,
+      volume: 3.2,
+      commissions: 22,
+      bestTrade: 180,
+      worstTrade: -110,
+      tradingSession: "afternoon",
+    },
+    {
+      date: "2023-05-10",
+      profit: -200,
+      trades: 6,
+      winRate: 33,
+      winCount: 2,
+      lossCount: 4,
+      rMultiple: -1.2,
+      avgTradeSize: 5000,
+      maxDrawdown: 250,
+      sharpeRatio: 0.5,
+      avgTradeDuration: 45,
+      volume: 3.6,
+      commissions: 26,
+      bestTrade: 140,
+      worstTrade: -190,
+      tradingSession: "morning",
+    },
+    {
+      date: "2023-05-11",
+      profit: 380,
+      trades: 8,
+      winRate: 75,
+      winCount: 6,
+      lossCount: 2,
+      rMultiple: 2.2,
+      avgTradeSize: 5200,
+      maxDrawdown: 180,
+      sharpeRatio: 1.9,
+      avgTradeDuration: 50,
+      volume: 4.5,
+      commissions: 35,
+      bestTrade: 260,
+      worstTrade: -120,
+      tradingSession: "afternoon",
+    },
+    {
+      date: "2023-05-12",
+      profit: 220,
+      trades: 5,
+      winRate: 80,
+      winCount: 4,
+      lossCount: 1,
+      rMultiple: 1.5,
+      avgTradeSize: 4900,
+      maxDrawdown: 140,
+      sharpeRatio: 1.7,
+      avgTradeDuration: 43,
+      volume: 3.0,
+      commissions: 24,
+      bestTrade: 200,
+      worstTrade: -100,
+      tradingSession: "morning",
+    },
   ]
 
-  const timeOfDayData = Object.entries(stats.byTimeOfDay).map(([time, count]) => ({
-    name: time,
-    value: count,
-  }))
+  // Calculate monthly totals
+  const totalProfit = monthlyData.reduce((sum, day) => sum + day.profit, 0)
+  const totalTrades = monthlyData.reduce((sum, day) => sum + day.trades, 0)
+  const winningDays = monthlyData.filter((day) => day.profit > 0).length
+  const losingDays = monthlyData.filter((day) => day.profit < 0).length
 
-  const dayOfWeekData = Object.entries(stats.byDayOfWeek).map(([day, count]) => ({
-    name: day,
-    value: count,
-  }))
+  // Calculate win rate
+  const winRate = (winningDays / monthlyData.length) * 100
 
-  const tagData = Object.entries(stats.byTags).map(([tag, count]) => ({
-    name: tag,
-    value: count,
-  }))
-
-  const instrumentData = Object.entries(stats.byInstrument).map(([instrument, count]) => ({
-    name: instrument,
-    value: count,
-  }))
-
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"]
+  // Handle date selection
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date === selectedDate ? null : date)
+  }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Journal Statistics</CardTitle>
-        <CardDescription>Analysis of {stats.totalEntries} journal entries</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="time">Time Analysis</TabsTrigger>
-            <TabsTrigger value="tags">Tags</TabsTrigger>
-            <TabsTrigger value="instruments">Instruments</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-          </TabsList>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Profit/Loss</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${totalProfit >= 0 ? "text-green-500" : "text-red-500"}`}>
+              {formatCurrency(totalProfit)}
+            </div>
+            <p className="text-xs text-muted-foreground">For May 2023</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalTrades}</div>
+            <p className="text-xs text-muted-foreground">For May 2023</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{winRate.toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">For May 2023</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Profitable Days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {winningDays} / {monthlyData.length}
+            </div>
+            <p className="text-xs text-muted-foreground">Winning/Total Days</p>
+          </CardContent>
+        </Card>
+      </div>
 
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{(stats.winRate * 100).toFixed(1)}%</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.winningTrades} wins / {stats.losingTrades} losses
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(stats.netProfit)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Profit: {formatCurrency(stats.totalProfit)} / Loss: {formatCurrency(stats.totalLoss)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Profit Factor</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.profitFactor.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Avg Win: {formatCurrency(stats.averageProfit)} / Avg Loss: {formatCurrency(stats.averageLoss)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Risk/Reward</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.averageRiskReward.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Largest Win: {formatCurrency(stats.largestWin)} / Largest Loss: {formatCurrency(stats.largestLoss)}
-                  </p>
-                </CardContent>
-              </Card>
+      <Tabs defaultValue="monthly" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="monthly">Monthly Overview</TabsTrigger>
+          <TabsTrigger value="daily">Daily Breakdown</TabsTrigger>
+        </TabsList>
+        <TabsContent value="monthly">
+          <MonthlyMetricsSummary month={new Date("2023-05-01")} data={monthlyData} />
+        </TabsContent>
+        <TabsContent value="daily">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {monthlyData.map((day) => (
+                <Card
+                  key={day.date}
+                  className={`cursor-pointer transition-all ${selectedDate === day.date ? "ring-2 ring-primary" : ""}`}
+                  onClick={() => handleDateSelect(day.date)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">
+                        {new Date(day.date).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                      <div className={`font-bold ${day.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {formatCurrency(day.profit)}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      {day.trades} trades • {day.winRate}% win rate
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            <div className="h-80 mt-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={winLossData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {winLossData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="time" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Trades by Time of Day</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={timeOfDayData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="value" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Trades by Day of Week</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dayOfWeekData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="value" fill="#82ca9d" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tags" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Trades by Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={tagData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="instruments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Trades by Instrument</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={instrumentData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Average Win vs Loss</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          { name: "Avg Win", value: stats.averageProfit },
-                          { name: "Avg Loss", value: stats.averageLoss },
-                        ]}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                        <Bar dataKey="value" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Largest Win vs Loss</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          { name: "Largest Win", value: stats.largestWin },
-                          { name: "Largest Loss", value: stats.largestLoss },
-                        ]}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                        <Bar dataKey="value" fill="#82ca9d" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            {selectedDate && (
+              <div className="mt-6">
+                <DailyMetricsDetail
+                  date={selectedDate}
+                  data={monthlyData.find((day) => day.date === selectedDate) || monthlyData[0]}
+                />
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }

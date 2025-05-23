@@ -5,6 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Format a number as currency
+ * @param value - The number to format
+ * @param currency - The currency code (default: USD)
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted currency string
+ */
 export function formatCurrency(value: number, currency = "USD", locale = "en-US"): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -12,52 +19,66 @@ export function formatCurrency(value: number, currency = "USD", locale = "en-US"
   }).format(value)
 }
 
-export function formatDateTime(dateString: string, locale = "en-US", options?: Intl.DateTimeFormatOptions): string {
-  const date = new Date(dateString)
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  }
-  const mergedOptions = { ...defaultOptions, ...options }
-  return new Intl.DateTimeFormat(locale, mergedOptions).format(date)
+/**
+ * Format a date and time
+ * @param date - The date to format
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted date and time string
+ */
+export function formatDateTime(date: Date | string, locale = "en-US"): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(dateObj)
 }
 
-export function formatDate(dateString: string, locale = "en-US", options?: Intl.DateTimeFormatOptions): string {
-  const date = new Date(dateString)
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }
-  const mergedOptions = { ...defaultOptions, ...options }
-  return new Intl.DateTimeFormat(locale, mergedOptions).format(date)
+/**
+ * Format a date
+ * @param date - The date to format
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted date string
+ */
+export function formatDate(date: Date | string, locale = "en-US"): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+  }).format(dateObj)
 }
 
-export function formatTime(dateString: string, locale = "en-US", options?: Intl.DateTimeFormatOptions): string {
-  const date = new Date(dateString)
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  }
-  const mergedOptions = { ...defaultOptions, ...options }
-  return new Intl.DateTimeFormat(locale, mergedOptions).format(date)
+/**
+ * Format a time
+ * @param date - The date to format
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted time string
+ */
+export function formatTime(date: Date | string, locale = "en-US"): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat(locale, {
+    timeStyle: "short",
+  }).format(dateObj)
 }
 
-export function formatNumber(value: number, locale = "en-US", options?: Intl.NumberFormatOptions): string {
-  return new Intl.NumberFormat(locale, options).format(value)
+/**
+ * Format a number
+ * @param value - The number to format
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted number string
+ */
+export function formatNumber(value: number, locale = "en-US"): string {
+  return new Intl.NumberFormat(locale).format(value)
 }
 
-export function formatPercent(value: number, locale = "en-US", options?: Intl.NumberFormatOptions): string {
-  const defaultOptions: Intl.NumberFormatOptions = {
+/**
+ * Format a percentage
+ * @param value - The number to format as percentage (0.1 = 10%)
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @returns Formatted percentage string
+ */
+export function formatPercent(value: number, locale = "en-US"): string {
+  return new Intl.NumberFormat(locale, {
     style: "percent",
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 1,
     maximumFractionDigits: 2,
-  }
-  const mergedOptions = { ...defaultOptions, ...options }
-  return new Intl.NumberFormat(locale, mergedOptions).format(value)
+  }).format(value)
 }

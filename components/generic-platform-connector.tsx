@@ -10,17 +10,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, CheckCircle2, Info } from "lucide-react"
 import { usePathname } from "next/navigation"
 
-export default function GenericPlatformConnector() {
+export default function GenericPlatformConnector({ platformName }: { platformName: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const platformId = pathname.split("/").pop() || ""
-  const platformName = getPlatformName(platformId)
 
   const [accessType, setAccessType] = useState("investor")
   const [isLoading, setIsLoading] = useState(false)
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const nameRef = useRef<HTMLInputElement>(null)
   const serverRef = useRef<HTMLInputElement>(null)
@@ -28,7 +27,7 @@ export default function GenericPlatformConnector() {
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const apiKeyRef = useRef<HTMLInputElement>(null)
-  const apiSecretRef = useRef<HTMLInputElement>(null)
+  const secretKeyRef = useRef<HTMLInputElement>(null)
 
   // Get field requirements based on selected platform
   const getFieldRequirements = () => {
@@ -171,115 +170,57 @@ export default function GenericPlatformConnector() {
   const fieldRequirements = getFieldRequirements()
 
   const handleTestConnection = async () => {
-    if (
-      !nameRef.current?.value ||
-      (fieldRequirements.server && !serverRef.current?.value) ||
-      (fieldRequirements.accountNumber && !accountNumberRef.current?.value) ||
-      (fieldRequirements.username && !usernameRef.current?.value) ||
-      (fieldRequirements.password && !passwordRef.current?.value) ||
-      (fieldRequirements.apiKey && !apiKeyRef.current?.value) ||
-      (fieldRequirements.apiSecret && !apiSecretRef.current?.value)
-    ) {
-      setError("Please fill in all required fields")
+    if (!nameRef.current?.value || !apiKeyRef.current?.value || !secretKeyRef.current?.value) {
+      setError("Please fill in all fields")
+      return
+    }
+
+    setIsTestingConnection(true)
+    setError(null)
+    setTestResult(null)
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // For demo purposes, always succeed
+      setTestResult({
+        success: true,
+        message: `Connection successful! Your ${platformName} account is ready to connect.`,
+      })
+    } catch (err: any) {
+      setError(err.message || "Failed to test connection")
+    } finally {
+      setIsTestingConnection(false)
+    }
+  }
+
+  const handleConnect = async () => {
+    if (!nameRef.current?.value || !apiKeyRef.current?.value || !secretKeyRef.current?.value) {
+      setError("Please fill in all fields")
       return
     }
 
     setIsLoading(true)
     setError(null)
-    setTestResult(null)
 
     try {
-      // Simulate successful connection for testing purposes
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      setTestResult({
-        success: true,
-        message: `Connection to ${platformName} successful! Your account is ready to be connected.`,
-      })
-    } catch (err) {
-      setTestResult({
-        success: false,
-        message: "Connection failed. Please check your credentials and try again.",
-      })
+      // Redirect to accounts page after successful connection
+      router.push("/trading-accounts")
+    } catch (err: any) {
+      setError(err.message || "Failed to connect account")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleConnect = async () => {
-    if (
-      !nameRef.current?.value ||
-      (fieldRequirements.server && !serverRef.current?.value) ||
-      (fieldRequirements.accountNumber && !accountNumberRef.current?.value) ||
-      (fieldRequirements.username && !usernameRef.current?.value) ||
-      (fieldRequirements.password && !passwordRef.current?.value) ||
-      (fieldRequirements.apiKey && !apiKeyRef.current?.value) ||
-      (fieldRequirements.apiSecret && !apiSecretRef.current?.value)
-    ) {
-      setError("Please fill in all required fields")
-      return
-    }
-
-    if (!testResult?.success) {
-      setError("Please test the connection before connecting")
-      return
-    }
-
-    setIsConnecting(true)
-    setError(null)
-
-    try {
-      // Create account object
-      const accountData = {
-        id: Date.now().toString(),
-        name: nameRef.current.value,
-        platform: platformId,
-        server: serverRef.current?.value || "",
-        accountNumber: accountNumberRef.current?.value || "",
-        balance: Math.floor(Math.random() * 50000) + 10000,
-        equity: Math.floor(Math.random() * 50000) + 10000,
-        currency: "USD",
-        leverage: "1:100",
-        createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString(),
-        isDemo: accessType === "demo",
-      }
-
-      // Save to localStorage for demo purposes
-      const existingAccounts = JSON.parse(localStorage.getItem("tradingAccounts") || "[]")
-      existingAccounts.push(accountData)
-      localStorage.setItem("tradingAccounts", JSON.stringify(existingAccounts))
-
-      // Redirect to trading accounts page
-      router.push("/trading-accounts?newAccount=true")
-    } catch (err) {
-      setError("An error occurred while connecting the account")
-      console.error("Connection error:", err)
-    } finally {
-      setIsConnecting(false)
-    }
-  }
-
   const handleLoadDemoAccount = () => {
-    if (nameRef.current) nameRef.current.value = `${platformName} Demo Account`
-    if (serverRef.current) serverRef.current.value = `${platformId}.demo.server.com`
-    if (accountNumberRef.current) accountNumberRef.current.value = `${platformId}${Math.floor(Math.random() * 100000)}`
-    if (usernameRef.current) usernameRef.current.value = `demo_${platformId}_user`
-    if (passwordRef.current) passwordRef.current.value = "demo12345"
-    if (apiKeyRef.current) apiKeyRef.current.value = `${platformId}_demo_api_key`
-    if (apiSecretRef.current) apiSecretRef.current.value = `${platformId}_demo_api_secret`
-    setAccessType("demo")
-  }
-
-  const handleLoadTestAccount = () => {
-    if (nameRef.current) nameRef.current.value = `${platformName} Test Account`
-    if (serverRef.current) serverRef.current.value = `${platformId}.live.server.com`
-    if (accountNumberRef.current) accountNumberRef.current.value = `${platformId}${Math.floor(Math.random() * 100000)}`
-    if (usernameRef.current) usernameRef.current.value = `test_${platformId}_user`
-    if (passwordRef.current) passwordRef.current.value = "test12345"
-    if (apiKeyRef.current) apiKeyRef.current.value = `${platformId}_test_api_key`
-    if (apiSecretRef.current) apiSecretRef.current.value = `${platformId}_test_api_secret`
-    setAccessType("full")
+    if (nameRef.current) nameRef.current.value = `Demo ${platformName} Account`
+    if (apiKeyRef.current) apiKeyRef.current.value = "demo_api_key_12345"
+    if (secretKeyRef.current) secretKeyRef.current.value = "demo_secret_key_67890"
   }
 
   return (
@@ -303,7 +244,7 @@ export default function GenericPlatformConnector() {
             id="account-name"
             ref={nameRef}
             placeholder={`My ${platformName} Account`}
-            disabled={isLoading || isConnecting}
+            disabled={isLoading || isTestingConnection}
           />
         </div>
 
@@ -314,7 +255,7 @@ export default function GenericPlatformConnector() {
               id="server"
               ref={serverRef}
               placeholder={`Your ${platformName} server`}
-              disabled={isLoading || isConnecting}
+              disabled={isLoading || isTestingConnection}
             />
             <p className="text-sm text-muted-foreground">
               Enter your {platformName} server address provided by your broker
@@ -329,7 +270,7 @@ export default function GenericPlatformConnector() {
               id="account-number"
               ref={accountNumberRef}
               placeholder="e.g., 12345678"
-              disabled={isLoading || isConnecting}
+              disabled={isLoading || isTestingConnection}
             />
           </div>
         )}
@@ -337,7 +278,12 @@ export default function GenericPlatformConnector() {
         {fieldRequirements.username && (
           <div className="grid gap-2">
             <Label htmlFor="username">Username</Label>
-            <Input id="username" ref={usernameRef} placeholder="Your username" disabled={isLoading || isConnecting} />
+            <Input
+              id="username"
+              ref={usernameRef}
+              placeholder="Your username"
+              disabled={isLoading || isTestingConnection}
+            />
           </div>
         )}
 
@@ -348,7 +294,7 @@ export default function GenericPlatformConnector() {
               value={accessType}
               onValueChange={setAccessType}
               className="flex flex-col space-y-1"
-              disabled={isLoading || isConnecting}
+              disabled={isLoading || isTestingConnection}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="investor" id="investor" />
@@ -390,21 +336,21 @@ export default function GenericPlatformConnector() {
                     : "Main Password"
                 : "Password"}
             </Label>
-            <Input id="password" type="password" ref={passwordRef} disabled={isLoading || isConnecting} />
+            <Input id="password" type="password" ref={passwordRef} disabled={isLoading || isTestingConnection} />
           </div>
         )}
 
         {fieldRequirements.apiKey && (
           <div className="grid gap-2">
             <Label htmlFor="api-key">API Key</Label>
-            <Input id="api-key" ref={apiKeyRef} disabled={isLoading || isConnecting} />
+            <Input id="api-key" ref={apiKeyRef} disabled={isLoading || isTestingConnection} />
           </div>
         )}
 
         {fieldRequirements.apiSecret && (
           <div className="grid gap-2">
             <Label htmlFor="api-secret">API Secret</Label>
-            <Input id="api-secret" type="password" ref={apiSecretRef} disabled={isLoading || isConnecting} />
+            <Input id="api-secret" type="password" ref={secretKeyRef} disabled={isLoading || isTestingConnection} />
           </div>
         )}
       </div>
@@ -421,14 +367,11 @@ export default function GenericPlatformConnector() {
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <Button variant="outline" onClick={handleLoadDemoAccount} disabled={isLoading || isConnecting}>
+        <Button variant="outline" onClick={handleLoadDemoAccount} disabled={isLoading || isTestingConnection}>
           Load Demo Account
         </Button>
-        <Button variant="outline" onClick={handleLoadTestAccount} disabled={isLoading || isConnecting}>
-          Load Test Account
-        </Button>
-        <Button variant="secondary" onClick={handleTestConnection} disabled={isLoading || isConnecting}>
-          {isLoading ? (
+        <Button variant="outline" onClick={handleTestConnection} disabled={isLoading || isTestingConnection}>
+          {isTestingConnection ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Testing...
@@ -437,8 +380,8 @@ export default function GenericPlatformConnector() {
             "Test Connection"
           )}
         </Button>
-        <Button onClick={handleConnect} disabled={isConnecting || isLoading || !testResult?.success}>
-          {isConnecting ? (
+        <Button onClick={handleConnect} disabled={isLoading || !testResult?.success}>
+          {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Connecting...
@@ -450,27 +393,4 @@ export default function GenericPlatformConnector() {
       </div>
     </div>
   )
-}
-
-// Helper function to get a formatted platform name
-function getPlatformName(platformId: string): string {
-  const platformNames: Record<string, string> = {
-    mt4: "MetaTrader 4",
-    mt5: "MetaTrader 5",
-    ctrader: "cTrader",
-    dxtrade: "DXtrade",
-    tradingview: "TradingView",
-    ninjatrader: "NinjaTrader",
-    tradestation: "TradeStation",
-    thinkorswim: "ThinkOrSwim",
-    interactivebrokers: "Interactive Brokers",
-    tradelocker: "TradeLocker",
-    matchtrader: "MatchTrader",
-    tradovate: "Tradovate",
-    rithmic: "Rithmic",
-    sierrachart: "Sierra Chart",
-    dxfeed: "DXfeed",
-  }
-
-  return platformNames[platformId.toLowerCase()] || platformId
 }

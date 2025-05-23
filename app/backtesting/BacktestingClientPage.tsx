@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Play, Download } from "lucide-react"
-import { useMobile } from "@/hooks/use-mobile"
 import { useState } from "react"
 
 export function BacktestingClientPage() {
-  const isMobile = useMobile()
   const [selectedTab, setSelectedTab] = useState("backtest")
 
   return (
@@ -18,7 +16,6 @@ export function BacktestingClientPage() {
           <h1 className="text-3xl font-bold tracking-tight">Strategy Backtesting</h1>
           <p className="text-muted-foreground">
             Test your trading strategies against historical data to validate performance before risking real capital.
-            {isMobile ? " Mobile view." : " Desktop view."}
           </p>
         </div>
 

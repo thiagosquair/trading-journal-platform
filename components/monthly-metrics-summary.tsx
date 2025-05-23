@@ -13,6 +13,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
+import { formatCurrency } from "@/lib/utils"
 
 interface MonthlyMetricsSummaryProps {
   month: Date
@@ -71,7 +72,7 @@ export default function MonthlyMetricsSummary({ month, data }: MonthlyMetricsSum
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground">Total Profit/Loss</div>
             <div className={`text-2xl font-bold ${totalProfit >= 0 ? "text-green-500" : "text-red-500"}`}>
-              ${totalProfit.toLocaleString()}
+              {formatCurrency(totalProfit)}
             </div>
           </CardContent>
         </Card>
@@ -111,7 +112,7 @@ export default function MonthlyMetricsSummary({ month, data }: MonthlyMetricsSum
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Bar
                     dataKey="profit"
                     fill="#8884d8"
@@ -137,7 +138,7 @@ export default function MonthlyMetricsSummary({ month, data }: MonthlyMetricsSum
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Bar
                     dataKey="profit"
                     name="Profit/Loss"
@@ -190,21 +191,24 @@ export default function MonthlyMetricsSummary({ month, data }: MonthlyMetricsSum
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={profitByDay.reduce((acc, day, index) => {
-                    const prevValue = index > 0 ? acc[index - 1].cumulative : 0
-                    return [
-                      ...acc,
-                      {
-                        date: day.date,
-                        cumulative: prevValue + day.profit,
-                      },
-                    ]
-                  }, [])}
+                  data={profitByDay.reduce(
+                    (acc, day, index) => {
+                      const prevValue = index > 0 ? acc[index - 1].cumulative : 0
+                      return [
+                        ...acc,
+                        {
+                          date: day.date,
+                          cumulative: prevValue + day.profit,
+                        },
+                      ]
+                    },
+                    [] as { date: number; cumulative: number }[],
+                  )}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Line
                     type="monotone"
                     dataKey="cumulative"

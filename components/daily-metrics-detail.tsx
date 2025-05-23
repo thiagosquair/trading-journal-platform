@@ -12,6 +12,7 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { formatCurrency } from "@/lib/utils"
 
 interface DailyMetricsDetailProps {
   date: string
@@ -66,7 +67,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
           <div className="bg-muted/20 p-4 rounded-lg">
             <div className="text-sm text-muted-foreground">Net Profit/Loss</div>
             <div className={`text-2xl font-bold ${data.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
-              ${data.profit}
+              {formatCurrency(data.profit)}
             </div>
           </div>
           <div className="bg-muted/20 p-4 rounded-lg">
@@ -104,7 +105,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -117,7 +118,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Line type="monotone" dataKey="profit" stroke="#8884d8" />
                 </LineChart>
               </ResponsiveContainer>
@@ -148,7 +149,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
                       <Badge variant={trade.direction === "long" ? "default" : "secondary"}>{trade.direction}</Badge>
                     </td>
                     <td className={`py-2 px-4 text-right ${trade.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
-                      ${trade.profit}
+                      {formatCurrency(trade.profit)}
                     </td>
                     <td className="py-2 px-4 text-right">{trade.duration} min</td>
                     <td className="py-2 px-4 text-right">{trade.rr}</td>
@@ -161,7 +162,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
                     Total:
                   </td>
                   <td className={`py-2 px-4 text-right ${data.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    ${data.profit}
+                    {formatCurrency(data.profit)}
                   </td>
                   <td colSpan={2}></td>
                 </tr>
@@ -176,11 +177,11 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <div className="text-xs text-muted-foreground">Avg Trade Size</div>
-                <div className="text-sm font-medium">${data.avgTradeSize?.toLocaleString()}</div>
+                <div className="text-sm font-medium">{formatCurrency(data.avgTradeSize || 0)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Max Drawdown</div>
-                <div className="text-sm font-medium">${data.maxDrawdown?.toLocaleString()}</div>
+                <div className="text-sm font-medium">{formatCurrency(data.maxDrawdown || 0)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
@@ -196,7 +197,7 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Commissions</div>
-                <div className="text-sm font-medium">${data.commissions}</div>
+                <div className="text-sm font-medium">{formatCurrency(data.commissions || 0)}</div>
               </div>
             </div>
           </div>
@@ -205,11 +206,11 @@ export default function DailyMetricsDetail({ date, data }: DailyMetricsDetailPro
             <div className="space-y-2">
               <div>
                 <div className="text-xs text-muted-foreground">Best Trade</div>
-                <div className="text-sm font-medium text-green-500">${data.bestTrade}</div>
+                <div className="text-sm font-medium text-green-500">{formatCurrency(data.bestTrade || 0)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Worst Trade</div>
-                <div className="text-sm font-medium text-red-500">${data.worstTrade}</div>
+                <div className="text-sm font-medium text-red-500">{formatCurrency(data.worstTrade || 0)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Trading Session</div>

@@ -29,3 +29,6 @@ export default function RootLayoutWithSidebar({
     </html>
   )
 }
+
+// Re-export SidebarWrapper for components that import it from here
+export { SidebarWrapper }

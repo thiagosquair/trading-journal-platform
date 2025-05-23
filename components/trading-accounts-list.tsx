@@ -1,69 +1,492 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, ArrowUpDown, BarChart3, ExternalLink, RefreshCw, Settings } from "lucide-react"
-import type { TradingAccount } from "@/lib/trading-types"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  MoreHorizontal,
+  RefreshCw,
+  ExternalLink,
+  Settings,
+  Trash2,
+  AlertCircle,
+  CheckCircle,
+  Search,
+  Filter,
+  ArrowUpDown,
+  Plus,
+} from "lucide-react"
+import { disconnectTradingAccount } from "@/lib/trading-actions"
+import { formatCurrency } from "@/lib/utils"
+import ConnectAccountModal from "./connect-account-modal"
 
-interface TradingAccountsListProps {
-  accounts: TradingAccount[]
-  isLoading?: boolean
-  error?: Error | null
-  onRefresh?: () => void
-}
+export function TradingAccountsList() {
+  const router = useRouter()
+  const [accounts, setAccounts] = useState<any[]>([])
+  const [filteredAccounts, setFilteredAccounts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState<{ field: string; direction: "asc" | "desc" }>({
+    field: "name",
+    direction: "asc",
+  })
+  const [filterPlatform, setFilterPlatform] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [syncingAccounts, setSyncingAccounts] = useState<string[]>([])
+  const [accountView, setAccountView] = useState<"grid" | "list">("grid")
 
-export default function TradingAccountsList({
-  accounts,
-  isLoading = false,
-  error = null,
-  onRefresh,
-}: TradingAccountsListProps) {
-  const [sortField, setSortField] = useState<keyof TradingAccount>("name")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  // Fetch accounts on mount
+  useEffect(() => {
+    loadAccounts()
+  }, [])
 
-  const handleSort = (field: keyof TradingAccount) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortDirection("asc")
+  // Apply filters and sorting
+  useEffect(() => {
+    let result = [...accounts]
+
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(
+        (account) =>
+          account.name.toLowerCase().includes(query) ||
+          account.platform.toLowerCase().includes(query) ||
+          account.server?.toLowerCase().includes(query) ||
+          account.accountNumber?.toLowerCase().includes(query),
+      )
+    }
+
+    // Apply platform filter
+    if (filterPlatform) {
+      result = result.filter((account) => account.platform.toLowerCase() === filterPlatform.toLowerCase())
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let valueA = a[sortBy.field]
+      let valueB = b[sortBy.field]
+
+      // Handle special cases
+      if (sortBy.field === "balance" || sortBy.field === "equity") {
+        valueA = Number.parseFloat(valueA) || 0
+        valueB = Number.parseFloat(valueB) || 0
+      }
+
+      if (valueA < valueB) return sortBy.direction === "asc" ? -1 : 1
+      if (valueA > valueB) return sortBy.direction === "asc" ? 1 : -1
+      return 0
+    })
+
+    setFilteredAccounts(result)
+  }, [accounts, searchQuery, filterPlatform, sortBy])
+
+  // Load accounts from storage/API
+  const loadAccounts = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      console.log("Loading accounts from localStorage...")
+
+      // Get accounts from localStorage
+      const storedAccounts = localStorage.getItem("tradingAccounts")
+      console.log("Raw stored accounts:", storedAccounts)
+
+      const data = storedAccounts ? JSON.parse(storedAccounts) : []
+      console.log("Parsed accounts data:", data)
+
+      setAccounts(data)
+
+      if (data.length === 0) {
+        console.log("No accounts found in localStorage")
+      } else {
+        console.log(`Loaded ${data.length} accounts`)
+      }
+    } catch (err: any) {
+      console.error("Error loading accounts:", err)
+      setError(err.message || "Failed to load trading accounts")
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const sortedAccounts = [...accounts].sort((a, b) => {
-    const aValue = a[sortField]
-    const bValue = b[sortField]
+  // Add this after the loadAccounts function:
+  const handleRefresh = () => {
+    console.log("Manually refreshing accounts...")
+    loadAccounts()
+  }
 
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
+  // Handle account sync
+  const handleSyncAccount = async (accountId: string) => {
+    setSyncingAccounts((prev) => [...prev, accountId])
+
+    try {
+      // Simulate sync with delay
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Update last synced time
+      setAccounts((prev) =>
+        prev.map((account) =>
+          account.id === accountId ? { ...account, lastSynced: new Date().toISOString() } : account,
+        ),
+      )
+
+      // Save to localStorage
+      localStorage.setItem(
+        "tradingAccounts",
+        JSON.stringify(
+          accounts.map((account) =>
+            account.id === accountId ? { ...account, lastSynced: new Date().toISOString() } : account,
+          ),
+        ),
+      )
+    } catch (err) {
+      console.error("Error syncing account:", err)
+    } finally {
+      setSyncingAccounts((prev) => prev.filter((id) => id !== accountId))
+    }
+  }
+
+  // Handle account disconnect
+  const handleDisconnectAccount = async (accountId: string) => {
+    if (!confirm("Are you sure you want to disconnect this account?")) {
+      return
     }
 
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
+    try {
+      await disconnectTradingAccount(accountId)
+      setAccounts((prev) => prev.filter((account) => account.id !== accountId))
+    } catch (err: any) {
+      console.error("Error disconnecting account:", err)
+      alert(err.message || "Failed to disconnect account")
+    }
+  }
+
+  // Handle account details view
+  const handleViewAccount = (accountId: string) => {
+    router.push(`/trading-accounts/${accountId}`)
+  }
+
+  // Handle sort change
+  const handleSortChange = (field: string) => {
+    setSortBy((prev) => ({
+      field,
+      direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc",
+    }))
+  }
+
+  // Handle platform filter change
+  const handlePlatformFilterChange = (platform: string | null) => {
+    setFilterPlatform(platform)
+  }
+
+  // Get unique platforms for filter
+  const platforms = [...new Set(accounts.map((account) => account.platform))]
+
+  // Render account grid
+  const renderAccountGrid = () => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-9 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )
     }
 
-    return 0
-  })
+    if (error) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )
+    }
 
-  if (isLoading) {
+    if (filteredAccounts.length === 0) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>No accounts found</CardTitle>
+            <CardDescription>
+              {accounts.length === 0
+                ? "You haven't connected any trading accounts yet."
+                : "No accounts match your search criteria."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Connect Account
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredAccounts.map((account) => (
+          <Card key={account.id} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="flex items-center">
+                    {account.name}
+                    <Badge variant="outline" className="ml-2">
+                      {account.platform}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>{account.server || account.broker}</CardDescription>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => handleViewAccount(account.id)}>
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSyncAccount(account.id)}>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Sync Account
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push(`/trading-accounts/${account.id}/settings`)}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Account Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleDisconnectAccount(account.id)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Disconnect
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-sm font-medium">Balance</p>
+                  <p className="text-2xl font-bold">{formatCurrency(account.balance, account.currency || "USD")}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Equity</p>
+                  <p className="text-2xl font-bold">{formatCurrency(account.equity, account.currency || "USD")}</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm text-muted-foreground">
+                  Last synced: {account.lastSynced ? new Date(account.lastSynced).toLocaleString() : "Never"}
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSyncAccount(account.id)}
+                disabled={syncingAccounts.includes(account.id)}
+              >
+                {syncingAccounts.includes(account.id) ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Sync
+                  </>
+                )}
+              </Button>
+              <Button size="sm" onClick={() => handleViewAccount(account.id)}>
+                View Details
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  // Render account list
+  const renderAccountList = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <Skeleton className="h-9 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )
+    }
+
+    if (filteredAccounts.length === 0) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>No accounts found</CardTitle>
+            <CardDescription>
+              {accounts.length === 0
+                ? "You haven't connected any trading accounts yet."
+                : "No accounts match your search criteria."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Connect Account
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
+        <div className="grid grid-cols-5 gap-4 px-4 py-2 font-medium text-sm text-muted-foreground">
+          <div className="col-span-2">Account</div>
+          <div className="text-right">Balance</div>
+          <div className="text-right">Equity</div>
+          <div className="text-right">Actions</div>
+        </div>
+
+        {filteredAccounts.map((account) => (
+          <Card key={account.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-5 gap-4 items-center">
+                <div className="col-span-2">
+                  <div className="font-medium">{account.name}</div>
+                  <div className="text-sm text-muted-foreground flex items-center">
+                    {account.platform}
+                    <span className="mx-2">•</span>
+                    {account.server || account.broker}
+                  </div>
+                </div>
+                <div className="text-right font-medium">
+                  {formatCurrency(account.balance, account.currency || "USD")}
+                </div>
+                <div className="text-right font-medium">
+                  {formatCurrency(account.equity, account.currency || "USD")}
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSyncAccount(account.id)}
+                    disabled={syncingAccounts.includes(account.id)}
+                  >
+                    {syncingAccounts.includes(account.id) ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">Sync</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleViewAccount(account.id)}>
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="sr-only">View</span>
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">More</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleViewAccount(account.id)}>
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSyncAccount(account.id)}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Sync Account
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push(`/trading-accounts/${account.id}/settings`)}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Account Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleDisconnectAccount(account.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Disconnect
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -72,124 +495,166 @@ export default function TradingAccountsList({
     )
   }
 
-  if (error) {
-    return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <div className="flex items-center text-red-700">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <p>Error loading accounts: {error.message}</p>
-            {onRefresh && (
-              <Button variant="ghost" size="sm" onClick={onRefresh} className="ml-auto">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  // Add this useEffect after the existing one:
+  useEffect(() => {
+    // Listen for storage changes (when accounts are added from other tabs/components)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "tradingAccounts") {
+        console.log("Storage changed, reloading accounts...")
+        loadAccounts()
+      }
+    }
 
-  if (accounts.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-center">
-          <p className="text-muted-foreground">No trading accounts found.</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Connect a trading account to get started tracking your performance.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
+    window.addEventListener("storage", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
+  }, [])
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={() => handleSort("name")}>
-            Name
-            {sortField === "name" && <ArrowUpDown className="ml-2 h-4 w-4" />}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search accounts..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filter by Platform</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handlePlatformFilterChange(null)}>
+                <CheckCircle className={`mr-2 h-4 w-4 ${!filterPlatform ? "opacity-100" : "opacity-0"}`} />
+                All Platforms
+              </DropdownMenuItem>
+              {platforms.map((platform) => (
+                <DropdownMenuItem key={platform} onClick={() => handlePlatformFilterChange(platform)}>
+                  <CheckCircle
+                    className={`mr-2 h-4 w-4 ${filterPlatform === platform ? "opacity-100" : "opacity-0"}`}
+                  />
+                  {platform}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                Sort
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {[
+                { field: "name", label: "Account Name" },
+                { field: "platform", label: "Platform" },
+                { field: "balance", label: "Balance" },
+                { field: "equity", label: "Equity" },
+                { field: "lastSynced", label: "Last Synced" },
+              ].map((option) => (
+                <DropdownMenuItem key={option.field} onClick={() => handleSortChange(option.field)}>
+                  {option.label}
+                  {sortBy.field === option.field && (
+                    <span className="ml-2">{sortBy.direction === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="view-mode" className="sr-only">
+              View Mode
+            </Label>
+            <div className="flex items-center space-x-1 border rounded-md p-1">
+              <Button
+                variant={accountView === "grid" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setAccountView("grid")}
+              >
+                <span className="sr-only">Grid View</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+              </Button>
+              <Button
+                variant={accountView === "list" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setAccountView("list")}
+              >
+                <span className="sr-only">List View</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+
+          <Button onClick={() => setIsModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Account
           </Button>
-          <Button variant="outline" size="sm" onClick={() => handleSort("platform")}>
-            Platform
-            {sortField === "platform" && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleSort("balance")}>
-            Balance
-            {sortField === "balance" && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {sortedAccounts.map((account) => (
-        <Card key={account.id} className="overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-xl">{account.name}</CardTitle>
-                <CardDescription>
-                  {account.platform} • Account #{account.accountNumber}
-                </CardDescription>
-              </div>
-              <Badge
-                variant={
-                  account.status === "active"
-                    ? "success"
-                    : account.status === "disconnected"
-                      ? "destructive"
-                      : "outline"
-                }
-              >
-                {account.status.charAt(0).toUpperCase() + account.status.slice(1)}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Balance</p>
-                <p className="text-lg font-medium">{formatCurrency(account.balance, account.currency)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Equity</p>
-                <p className="text-lg font-medium">{formatCurrency(account.equity, account.currency)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Last Updated</p>
-                <p className="text-sm">{formatDate(account.lastUpdated)}</p>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="bg-muted/50 pt-2">
-            <div className="flex justify-between w-full">
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/trading-accounts/${account.id}`}>
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/trading-accounts/${account.id}/settings`}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </Button>
-              </div>
-              {account.status === "active" && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/trading-accounts/${account.id}/live-monitor`}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Live Monitor
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </CardFooter>
-        </Card>
-      ))}
+      {accountView === "grid" ? renderAccountGrid() : renderAccountList()}
+
+      <ConnectAccountModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConnect={() => {
+          loadAccounts()
+          setIsModalOpen(false)
+        }}
+        initialPlatform={null}
+      />
     </div>
   )
 }
