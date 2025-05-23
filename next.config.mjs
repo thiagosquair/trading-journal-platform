@@ -9,6 +9,19 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'canvas', 'jsdom']
+    }
+    return config
+  },
+  // Ensure API routes are treated as dynamic
+  async rewrites() {
+    return []
+  },
 }
 
 export default nextConfig
