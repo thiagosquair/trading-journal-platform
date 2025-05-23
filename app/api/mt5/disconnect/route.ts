@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import metaApiService from "@/lib/platforms/metaapi-service"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,15 +10,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Account ID is required" }, { status: 400 })
     }
 
-    console.log(`Disconnecting MT5 account: ${accountId}`)
+    console.log(`Disconnecting account: ${accountId}`)
 
-    // For demo purposes, we'll simulate a successful disconnection
-    return NextResponse.json({
-      message: "Account disconnected successfully",
-      accountId,
-    })
+    // Check if MetaAPI service is initialized
+    if (!metaApiService.isReady()) {
+      const error = metaApiService.getInitializationError()
+      console.error("MetaAPI service not initialized:", error)
+
+      // If we're using mock data, just return success
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Using mock data for disconnection")
+        return NextResponse.json({
+          success: true,
+          message: "Account disconnected (MOCK DATA)",
+        })
+      }
+
+      return NextResponse.json({ error: `MetaAPI service not initialized: ${error}` }, { status: 500 })
+    }
+
+    try {
+      // Disconnect the account
+      const result = await metaApiService.disconnectAccount(accountId)
+
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: result.message || "Account disconnected successfully",
+      })
+    } catch (apiError: any) {
+      console.error("Error disconnecting account:", apiError)
+      
+      // If there's an error with the API but mock data is enabled, return mock success
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Falling back to mock data after API error")
+        return NextResponse.json({
+          success: true,
+          message: "Account disconnected (MOCK DATA after API error)",
+          error: apiError.message
+        })
+      }
+      
+      throw apiError
+    }
   } catch (error: any) {
-    console.error("Error disconnecting MT5 account:", error)
+    console.error("Error disconnecting account:", error)
     return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 })
   }
 }
