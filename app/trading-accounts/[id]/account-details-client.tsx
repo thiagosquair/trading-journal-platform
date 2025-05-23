@@ -1,11 +1,8 @@
 "use client"
 
 import { Switch } from "@/components/ui/switch"
-
 import { Input } from "@/components/ui/input"
-
 import { Label } from "@/components/ui/label"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -82,9 +79,11 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
       setAccount(updatedAccount)
 
       // Save to localStorage
-      const accounts = JSON.parse(localStorage.getItem("tradingAccounts") || "[]")
-      const updatedAccounts = accounts.map((acc: any) => (acc.id === accountId ? updatedAccount : acc))
-      localStorage.setItem("tradingAccounts", JSON.stringify(updatedAccounts))
+      if (typeof window !== "undefined") {
+        const accounts = JSON.parse(localStorage.getItem("tradingAccounts") || "[]")
+        const updatedAccounts = accounts.map((acc: any) => (acc.id === accountId ? updatedAccount : acc))
+        localStorage.setItem("tradingAccounts", JSON.stringify(updatedAccounts))
+      }
 
       // Reload trades
       const tradesResponse = await fetch(`/api/mt5/history?accountId=${accountId}`, {

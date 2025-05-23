@@ -24,7 +24,7 @@ const formSchema = z.object({
   saveCredentials: z.boolean().default(true),
 })
 
-export function MT5AccountConnector() {
+export default function MT5AccountConnector() {
   const router = useRouter()
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
