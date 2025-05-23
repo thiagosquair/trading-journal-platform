@@ -1,35 +1,94 @@
 import { type NextRequest, NextResponse } from "next/server"
+import metaApiService from "@/lib/platforms/metaapi-service"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { name, server, login, password, saveCredentials } = body
 
+    // Validate required fields
     if (!name || !server || !login || !password) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Missing required fields: name, server, login, and password are required" },
+        { status: 400 },
+      )
     }
 
-    console.log(`Connecting MT5 account: ${name} (${login})`)
+    console.log(`Connecting to MT5 account: ${login}@${server}`)
 
-    // For demo purposes, we'll simulate a successful connection
-    // In a real implementation, this would connect to MetaAPI or another service
+    // Check if MetaAPI service is initialized
+    if (!metaApiService.isReady()) {
+      const error = metaApiService.getInitializationError()
+      console.error("MetaAPI service not initialized:", error)
 
-    const mockAccountInfo = {
-      balance: 10000 + Math.random() * 50000,
-      equity: 9500 + Math.random() * 50000,
-      currency: "USD",
-      leverage: "1:100",
-      margin: Math.random() * 1000,
-      freeMargin: 9000 + Math.random() * 40000,
-      marginLevel: 900 + Math.random() * 100,
-      server: server,
-      accountId: `mt5_${login}`,
-      message: "Account connected successfully (DEMO MODE)",
+      // If USE_MOCK_DATA is enabled, return mock data
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Using mock data for MT5 connection")
+        return NextResponse.json({
+          success: true,
+          accountId: `mt5_${login}`,
+          balance: 27544.7,
+          equity: 12759.73,
+          currency: "GBP",
+          leverage: "1:30",
+          margin: 1500.25,
+          freeMargin: 11259.48,
+          marginLevel: 850.5,
+          message: "Connected to MT5 account (MOCK DATA)",
+        })
+      }
+
+      return NextResponse.json({ error: `MetaAPI service not initialized: ${error}` }, { status: 500 })
     }
 
-    return NextResponse.json(mockAccountInfo)
+    try {
+      // Connect to MT5 account
+      const result = await metaApiService.connectAccount({
+        login,
+        password,
+        server,
+        accountId: `mt5_${login}`,
+      })
+
+      if (!result.success) {
+        console.error("Failed to connect to MT5:", result.error)
+        return NextResponse.json({ error: result.error }, { status: 500 })
+      }
+
+      // Get account information
+      const accountInfo = await metaApiService.getAccountInformation(result.accountId!)
+
+      return NextResponse.json({
+        success: true,
+        accountId: result.accountId,
+        ...accountInfo,
+        message: "Connected to MT5 account successfully",
+      })
+    } catch (apiError: any) {
+      console.error("Error connecting to MT5 or retrieving account info:", apiError)
+      
+      // If there's an error with the API but mock data is enabled, return mock data
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Falling back to mock data after API error")
+        return NextResponse.json({
+          success: true,
+          accountId: `mt5_${login}`,
+          balance: 27544.7,
+          equity: 12759.73,
+          currency: "GBP",
+          leverage: "1:30",
+          margin: 1500.25,
+          freeMargin: 11259.48,
+          marginLevel: 850.5,
+          message: "Connected to MT5 account (MOCK DATA after API error)",
+          error: apiError.message
+        })
+      }
+      
+      throw apiError
+    }
   } catch (error: any) {
-    console.error("Error connecting MT5 account:", error)
+    console.error("Error in MT5 connect API:", error)
     return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 })
   }
 }
