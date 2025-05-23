@@ -11,7 +11,7 @@ import { AlertCircle, CheckCircle2, Loader2, Shield, Key } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useRouter } from "next/navigation"
 
-export default function MT5LiveAccountConnector() {
+export default function MT5LiveAccountConnector() { on success }: () => void}
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
@@ -120,10 +120,14 @@ export default function MT5LiveAccountConnector() {
 
       setSuccess("Account connected successfully!")
 
-      // Redirect to trading accounts page after a short delay
-      setTimeout(() => {
-        router.push("/trading-accounts")
-      }, 1500)
+setTimeout(() => {
+  if (onSuccess) {
+    onSuccess()
+  } else {
+    router.push("/trading-accounts")
+  }
+}, 1500)
+
     } catch (err: any) {
       setError(err.message || "Failed to connect account")
     } finally {
