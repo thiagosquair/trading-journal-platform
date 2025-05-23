@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import metaApiService from "@/lib/platforms/metaapi-service"
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,59 +11,112 @@ export async function GET(request: NextRequest) {
 
     console.log(`Getting trade history for: ${accountId}`)
 
-    // Always return mock data for now to avoid server-side issues
-    const mockTrades = [
-      {
-        id: "1",
-        symbol: "GBPUSD",
-        type: "BUY",
-        openTime: new Date("2025-05-20T10:30:00Z").toISOString(),
-        closeTime: new Date("2025-05-20T14:45:00Z").toISOString(),
-        openPrice: 1.265,
-        closePrice: 1.268,
-        volume: 0.5,
-        profit: 150.0,
-        commission: 5.0,
-        swap: -2.5,
-        pips: 30,
-        status: "CLOSED",
-      },
-      {
-        id: "2",
-        symbol: "EURUSD",
-        type: "SELL",
-        openTime: new Date("2025-05-21T09:15:00Z").toISOString(),
-        closeTime: new Date("2025-05-21T16:30:00Z").toISOString(),
-        openPrice: 1.0865,
-        closePrice: 1.0845,
-        volume: 0.3,
-        profit: 60.0,
-        commission: 3.0,
-        swap: -1.5,
-        pips: 20,
-        status: "CLOSED",
-      },
-      {
-        id: "3",
-        symbol: "USDJPY",
-        type: "BUY",
-        openTime: new Date("2025-05-22T08:00:00Z").toISOString(),
-        closeTime: new Date("2025-05-22T12:30:00Z").toISOString(),
-        openPrice: 149.85,
-        closePrice: 150.15,
-        volume: 0.2,
-        profit: 40.0,
-        commission: 2.0,
-        swap: 0,
-        pips: 30,
-        status: "CLOSED",
-      },
-    ]
+    // Check if MetaAPI service is initialized
+    if (!metaApiService.isReady()) {
+      const error = metaApiService.getInitializationError()
+      console.error("MetaAPI service not initialized:", error)
 
-    return NextResponse.json({
-      deals: mockTrades,
-      message: "Trade history retrieved (DEMO MODE)",
-    })
+      // If USE_MOCK_DATA is enabled, return mock data
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Using mock data for trade history")
+        return NextResponse.json({
+          deals: [
+            {
+              id: "1",
+              symbol: "GBPUSD",
+              type: "BUY",
+              openTime: new Date("2025-05-20T10:30:00Z").toISOString(),
+              closeTime: new Date("2025-05-20T14:45:00Z").toISOString(),
+              openPrice: 1.265,
+              closePrice: 1.268,
+              volume: 0.5,
+              profit: 150.0,
+              commission: 5.0,
+              swap: -2.5,
+              pips: 30,
+              status: "CLOSED",
+            },
+            {
+              id: "2",
+              symbol: "EURUSD",
+              type: "SELL",
+              openTime: new Date("2025-05-21T09:15:00Z").toISOString(),
+              closeTime: new Date("2025-05-21T16:30:00Z").toISOString(),
+              openPrice: 1.0865,
+              closePrice: 1.0845,
+              volume: 0.3,
+              profit: 60.0,
+              commission: 3.0,
+              swap: -1.5,
+              pips: 20,
+              status: "CLOSED",
+            },
+          ],
+          message: "Trade history retrieved (MOCK DATA)",
+        })
+      }
+
+      return NextResponse.json({ error: `MetaAPI service not initialized: ${error}` }, { status: 500 })
+    }
+
+    try {
+      // Get trade history for the last 90 days
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - 90)
+
+      const history = await metaApiService.getTradeHistory(accountId, startDate, endDate)
+
+      return NextResponse.json({
+        ...history,
+        message: "Trade history retrieved successfully",
+      })
+    } catch (apiError: any) {
+      console.error("Error retrieving trade history:", apiError)
+      
+      // If there's an error with the API but mock data is enabled, return mock data
+      if (process.env.USE_MOCK_DATA === "true") {
+        console.log("Falling back to mock data after API error")
+        return NextResponse.json({
+          deals: [
+            {
+              id: "1",
+              symbol: "GBPUSD",
+              type: "BUY",
+              openTime: new Date("2025-05-20T10:30:00Z").toISOString(),
+              closeTime: new Date("2025-05-20T14:45:00Z").toISOString(),
+              openPrice: 1.265,
+              closePrice: 1.268,
+              volume: 0.5,
+              profit: 150.0,
+              commission: 5.0,
+              swap: -2.5,
+              pips: 30,
+              status: "CLOSED",
+            },
+            {
+              id: "2",
+              symbol: "EURUSD",
+              type: "SELL",
+              openTime: new Date("2025-05-21T09:15:00Z").toISOString(),
+              closeTime: new Date("2025-05-21T16:30:00Z").toISOString(),
+              openPrice: 1.0865,
+              closePrice: 1.0845,
+              volume: 0.3,
+              profit: 60.0,
+              commission: 3.0,
+              swap: -1.5,
+              pips: 20,
+              status: "CLOSED",
+            },
+          ],
+          message: "Trade history retrieved (MOCK DATA after API error)",
+          error: apiError.message
+        })
+      }
+      
+      throw apiError
+    }
   } catch (error: any) {
     console.error("Error getting trade history:", error)
     return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 })
