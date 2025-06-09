@@ -1,565 +1,290 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import {
-  ChevronRight,
-  BarChart2,
-  BookOpen,
-  LineChart,
-  Brain,
-  RefreshCw,
-  Target,
-  Shield,
-  ArrowUpRight,
-  BrainCircuit,
-  History,
-  TrendingUp,
-} from "lucide-react"
-import HeroVideo from "@/components/hero-video"
-import { BacktestingFeature } from "@/components/features/backtesting-feature"
-import BacktestingSection from "./backtesting-section"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowRight, BarChart3, BookOpen, Brain, Target, TrendingUp, Users, ChevronDown, ChevronUp } from "lucide-react"
+import Image from "next/image"
 
 export default function LandingPage() {
-  return (
-    <div className="flex flex-col min-h-screen landing-page">
-      {/* Announcement Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 text-center relative">
-        <p className="text-sm font-medium">
-          New MT5 Live Account Integration is now available! 🚀{" "}
-          <Link href="/trading-accounts/connect-mt5" className="underline ml-1">
-            Connect your account now
-          </Link>
-        </p>
-      </div>
+  const [expandedFeatures, setExpandedFeatures] = useState(false)
 
-      {/* Header/Navigation */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <LineChart className="h-6 w-6 mr-2 text-blue-600" />
-            <span className="text-xl font-bold text-blue-900">TradeLinx</span>
+  const toggleExpandFeatures = () => {
+    setExpandedFeatures(!expandedFeatures)
+  }
+
+  const features = [
+    {
+      icon: <BarChart3 className="h-8 w-8 text-blue-600" />,
+      title: "Advanced Analytics",
+      description: "Gain deep insights into your trading patterns with comprehensive performance metrics.",
+      expandedDescription:
+        "Track win rates, profit factors, Sharpe ratios, and detailed performance breakdowns. Analyze your trading patterns with advanced statistical metrics, risk-adjusted returns, and comprehensive reporting tools that help you understand your strengths and weaknesses as a trader.",
+    },
+    {
+      icon: <BookOpen className="h-8 w-8 text-blue-600" />,
+      title: "Trading Journal",
+      description: "Document your thoughts, strategies, and emotions for each trade.",
+      expandedDescription:
+        "Upload chart screenshots, add detailed trade notes, tag trades by strategy, and track your emotional state. Our comprehensive journaling system helps you identify patterns in your decision-making process and improve your trading psychology over time.",
+    },
+    {
+      icon: <Brain className="h-8 w-8 text-blue-600" />,
+      title: "Psychology Tools",
+      description: "Track your trading psychology and emotional patterns.",
+      expandedDescription:
+        "Monitor confidence levels, stress indicators, and emotional triggers. Access guided meditation exercises, pre-trade checklists, and psychological assessments designed specifically for traders to help you maintain optimal mental performance.",
+    },
+    {
+      icon: <Target className="h-8 w-8 text-blue-600" />,
+      title: "Performance Goals",
+      description: "Set and track SMART trading goals with progress monitoring.",
+      expandedDescription:
+        "Create specific, measurable, achievable, relevant, and time-bound goals. Track your progress with visual indicators, receive personalized recommendations, and adjust your targets based on your performance data and market conditions.",
+    },
+    {
+      icon: <TrendingUp className="h-8 w-8 text-blue-600" />,
+      title: "Risk Analysis",
+      description: "Monitor your risk exposure and position sizing.",
+      expandedDescription:
+        "Calculate optimal position sizes, monitor leverage usage, track maximum drawdown, and analyze risk-adjusted returns. Our risk management tools help you maintain consistent position sizing and protect your capital.",
+    },
+    {
+      icon: <Users className="h-8 w-8 text-blue-600" />,
+      title: "Trade Reporting",
+      description: "Generate detailed reports to track your progress over time.",
+      expandedDescription:
+        "Create comprehensive monthly and yearly reports, export data for tax purposes, generate performance summaries for investors, and track your progress with detailed analytics and visualizations.",
+    },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <BarChart3 className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">TradingJournal</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">
-              Login
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="#features" className="text-gray-600 hover:text-gray-900">
+              Features
             </Link>
-            <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+            <Link href="#pricing" className="text-gray-600 hover:text-gray-900">
+              Pricing
+            </Link>
+            <Link href="#about" className="text-gray-600 hover:text-gray-900">
+              About
+            </Link>
+          </nav>
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild>
               <Link href="/register">Get Started</Link>
             </Button>
           </div>
         </div>
       </header>
 
-      <main>
-        {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
-              <div className="flex flex-col justify-between">
-                <div>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                    <span className="block">Elevate Your Trading with</span>
-                    <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      AI and Data-Driven Insights
-                    </span>
-                  </h1>
-                  <p className="mt-6 text-lg text-slate-600 max-w-2xl">
-                    TradeLinx helps you discover patterns in your trading behavior, identify your strengths, and
-                    overcome weaknesses with powerful analytics and AI-powered journaling tools. Connect your MT5
-                    account for real-time performance tracking.
-                  </p>
-                </div>
-                <div>
-                  <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                    <Button
-                      size="lg"
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                      asChild
-                    >
-                      <Link href="/register">
-                        Start Journaling Free <ChevronRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button size="lg" variant="outline" asChild>
-                      <Link href="/demo">View Demo</Link>
-                    </Button>
-                  </div>
-                  <div className="mt-6 text-sm text-slate-500">
-                    No credit card required • Free plan available • Cancel anytime
-                  </div>
-                </div>
-              </div>
-              <div className="h-full flex items-center">
-                <HeroVideo />
-              </div>
-            </div>
+      {/* Hero Section */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto text-center max-w-4xl">
+          <Badge variant="secondary" className="mb-4">
+            🚀 New: AI-Powered Trade Analysis
+          </Badge>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            Master Your Trading with <span className="text-blue-600">Smart Analytics</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Transform your trading performance with our comprehensive journal and analytics platform. Track, analyze,
+            and improve your trading decisions with powerful insights.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="text-lg px-8" asChild>
+              <Link href="/register">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8" asChild>
+              <Link href="/demo">View Demo</Link>
+            </Button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Features Section */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                <span className="bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
-                  Essential
-                </span>{" "}
-                Trading Features
-              </h2>
-              <p className="mt-4 mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Our comprehensive suite of tools helps you track, analyze, and improve your trading performance.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <BarChart2 className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Advanced Analytics</h3>
-                <p className="text-slate-600">
-                  Gain deep insights into your trading patterns with comprehensive performance metrics.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Trading Journal</h3>
-                <p className="text-slate-600">Document your thoughts, strategies, and emotions for each trade.</p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <Brain className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Psychology Tools</h3>
-                <p className="text-slate-600">Track and manage your emotional states to improve trading decisions.</p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <RefreshCw className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">MT5 Integration</h3>
-                <p className="text-slate-600">
-                  Connect directly to your MT5 accounts for automatic trade synchronization.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Performance Goals</h3>
-                <p className="text-slate-600">
-                  Set and track trading goals to measure your progress and stay accountable.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow p-6">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Risk Analysis</h3>
-                <p className="text-slate-600">
-                  Analyze your risk management with detailed risk metrics and suggestions.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Backtesting Feature Section */}
-        <section className="py-12 md:py-16 bg-white">
-          <div className="container px-4 mx-auto">
-            <div className="inline-flex h-8 items-center rounded-full bg-blue-50 px-4 text-sm font-medium text-blue-600">
-              NEW FEATURE
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                  <span className="text-blue-600">Advanced</span> Strategy Backtesting
-                </h2>
-
-                <p className="mt-4 text-gray-600">
-                  Test your trading strategies against historical data to validate performance before risking real
-                  capital. Our powerful backtesting engine provides comprehensive analytics and optimization tools.
-                </p>
-
-                <div className="mt-8 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                      <History className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                    <span>Backtest across multiple timeframes and instruments</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                      <LineChart className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                    <span>Detailed performance metrics and equity curves</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                      <BarChart2 className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                    <span>Strategy optimization and parameter tuning</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                      <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                    <span>Monte Carlo simulations for risk assessment</span>
-                  </div>
-                </div>
-
-                <div className="mt-8">
-                  <Button className="bg-blue-600 hover:bg-blue-700" asChild>
-                    <Link href="/backtesting">
-                      Try Backtesting <ArrowUpRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="relative rounded-xl overflow-hidden">
-                <Image
-                  src="/backtesting-dashboard.png"
-                  alt="Backtesting Dashboard"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover rounded-lg border shadow-lg"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Backtesting Section */}
-        <BacktestingSection />
-
-        {/* Advanced Strategy Backtesting Section */}
-        <section className="py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col gap-4">
-              <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600 border-blue-100 w-fit">
-                NEW FEATURE
-              </div>
-              <div className="grid md:grid-cols-2 gap-6 lg:gap-12">
-                <div className="flex flex-col justify-center space-y-4">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                      <span className="text-blue-600">Advanced</span> Strategy Backtesting
-                    </h2>
-                    <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                      Test your trading strategies against historical data to validate performance before risking real
-                      capital. Our powerful backtesting engine provides comprehensive analytics and optimization tools.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                    <Link
-                      href="/backtesting"
-                      className="inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700"
-                    >
-                      Try Backtesting
-                      <ArrowUpRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex items-start gap-2">
-                      <History className="h-5 w-5 text-blue-600" />
-                      <div className="grid gap-1">
-                        <p className="text-sm font-medium leading-none">Multi-timeframe Testing</p>
-                        <p className="text-sm text-gray-500">Backtest across multiple timeframes and instruments</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <LineChart className="h-5 w-5 text-blue-600" />
-                      <div className="grid gap-1">
-                        <p className="text-sm font-medium leading-none">Detailed Performance Metrics</p>
-                        <p className="text-sm text-gray-500">Comprehensive performance metrics and equity curves</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <BarChart2 className="h-5 w-5 text-blue-600" />
-                      <div className="grid gap-1">
-                        <p className="text-sm font-medium leading-none">Strategy Optimization</p>
-                        <p className="text-sm text-gray-500">Optimize parameters for maximum performance</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <TrendingUp className="h-5 w-5 text-blue-600" />
-                      <div className="grid gap-1">
-                        <p className="text-sm font-medium leading-none">Monte Carlo Simulation</p>
-                        <p className="text-sm text-gray-500">Assess risk with advanced statistical analysis</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Image
-                    src="/backtesting-dashboard.png"
-                    alt="Backtesting Dashboard"
-                    width={550}
-                    height={400}
-                    className="rounded-lg border shadow-lg"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* AI Trade Analysis Section */}
-        <section className="py-20 bg-gradient-to-b from-white to-slate-50">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1">
-                <div className="inline-block mb-4 px-4 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm">
-                  NEW FEATURE
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    AI-Powered
-                  </span>{" "}
-                  Trade Analysis
-                </h2>
-                <p className="mt-4 text-slate-600 max-w-xl">
-                  Upload your chart screenshots and get instant AI analysis of your trade setups, including pattern
-                  recognition, support/resistance levels, and risk/reward calculations.
-                </p>
-                <ul className="mt-6 space-y-3">
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-indigo-100 rounded-full p-1">
-                      <BrainCircuit className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <span className="text-slate-700">Automatic pattern recognition and trend analysis</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-indigo-100 rounded-full p-1">
-                      <Target className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <span className="text-slate-700">Optimal entry and exit point suggestions</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-indigo-100 rounded-full p-1">
-                      <Shield className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <span className="text-slate-700">Risk/reward calculation and position sizing advice</span>
-                  </li>
-                </ul>
-                <div className="mt-8">
-                  <Button
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    asChild
-                  >
-                    <Link href="/trade-analysis">
-                      Try AI Analysis <ArrowUpRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="order-1 lg:order-2">
-                <div className="relative rounded-xl overflow-hidden shadow-xl border border-slate-200">
-                  <Image
-                    src="/ai-analysis-interface.png"
-                    alt="AI Trade Analysis Example"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600/20 to-transparent pointer-events-none"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Backtesting Feature Section */}
-        <section className="py-20 bg-white feature-section">
-          <div className="container mx-auto px-4">
-            <BacktestingFeature />
-          </div>
-        </section>
-
-        {/* MT5 Integration Section */}
-        <section className="py-20 bg-slate-50">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="relative rounded-xl overflow-hidden shadow-xl border border-slate-200">
-                  <Image
-                    src="/trading-dashboard.png"
-                    alt="MT5 Integration"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-bl from-blue-600/20 to-transparent pointer-events-none"></div>
-                </div>
-              </div>
-              <div>
-                <div className="inline-block mb-4 px-4 py-1 rounded-full bg-blue-100 text-blue-700 font-medium text-sm">
-                  NEW FEATURE
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    MetaTrader 5
-                  </span>{" "}
-                  Live Integration
-                </h2>
-                <p className="mt-4 text-slate-600 max-w-xl">
-                  Connect your MT5 trading accounts directly to TradeLinx for automatic trade synchronization and
-                  real-time performance tracking.
-                </p>
-                <ul className="mt-6 space-y-3">
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-blue-100 rounded-full p-1">
-                      <RefreshCw className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <span className="text-slate-700">Real-time account synchronization</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-blue-100 rounded-full p-1">
-                      <BarChart2 className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <span className="text-slate-700">Automatic performance tracking and analytics</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="mr-2 mt-1 bg-blue-100 rounded-full p-1">
-                      <Shield className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <span className="text-slate-700">Secure read-only access to your trading accounts</span>
-                  </li>
-                </ul>
-                <div className="mt-8">
-                  <Button
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    asChild
-                  >
-                    <Link href="/trading-accounts/connect-mt5">
-                      Connect Your MT5 Account <ArrowUpRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              Ready to Transform Your Trading?
+      {/* Features Section */}
+      <section id="features" className="py-20 px-4 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              <span className="text-blue-600">Essential</span> Trading Features
             </h2>
-            <p className="mt-4 mx-auto max-w-[700px] text-white/90 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Join thousands of traders who are using TradeLinx's advanced analytics and AI-powered insights to improve
-              their performance and achieve consistent results.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our comprehensive suite of tools helps you track, analyze, and improve your trading performance.
             </p>
-            <div className="mt-10">
-              <Button size="lg" className="bg-white text-indigo-600 hover:bg-slate-100" asChild>
-                <Link href="/register">
-                  Get Started Free <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
+
+            <div className="mt-8">
+              <Button
+                variant="outline"
+                onClick={toggleExpandFeatures}
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+              >
+                {expandedFeatures ? (
+                  <>
+                    <ChevronUp className="mr-2 h-4 w-4" />
+                    Collapse All
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="mr-2 h-4 w-4" />
+                    Expand All
+                  </>
+                )}
               </Button>
             </div>
           </div>
-        </section>
-      </main>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader>
+                  <div className="mb-4">{feature.icon}</div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardDescription className="text-gray-600">{feature.description}</CardDescription>
+                </CardHeader>
+                {expandedFeatures && (
+                  <CardContent>
+                    <p className="text-sm text-gray-700 leading-relaxed">{feature.expandedDescription}</p>
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview */}
+      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">See Your Trading Performance at a Glance</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our intuitive dashboard gives you instant insights into your trading performance
+            </p>
+          </div>
+          <div className="relative">
+            <Image
+              src="/trading-dashboard.png"
+              alt="Trading Dashboard Preview"
+              width={1200}
+              height={800}
+              className="rounded-lg shadow-2xl mx-auto"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-blue-600">
+        <div className="container mx-auto text-center max-w-4xl">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Transform Your Trading?</h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of traders who have improved their performance with our platform. Start your free trial
+            today.
+          </p>
+          <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
+            <Link href="/register">
+              Start Free Trial
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 md:px-6 lg:px-8 bg-slate-900 text-slate-400">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-white py-12 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white font-bold text-lg mb-4">TradeLinx</h3>
-              <p className="text-sm">The ultimate trading journal and analytics platform for serious traders.</p>
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold">TradingJournal</span>
+              </div>
+              <p className="text-gray-400">The complete trading analytics platform for serious traders.</p>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/features" className="hover:text-white transition-colors">
+                  <Link href="/features" className="hover:text-white">
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link href="/pricing" className="hover:text-white transition-colors">
+                  <Link href="/pricing" className="hover:text-white">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="/integrations" className="hover:text-white transition-colors">
-                    Integrations
+                  <Link href="/demo" className="hover:text-white">
+                    Demo
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm">
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/blog" className="hover:text-white transition-colors">
+                  <Link href="/about" className="hover:text-white">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-white">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="hover:text-white">
                     Blog
                   </Link>
                 </li>
-                <li>
-                  <Link href="/guides" className="hover:text-white transition-colors">
-                    Guides
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/support" className="hover:text-white transition-colors">
-                    Support
-                  </Link>
-                </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/about" className="hover:text-white transition-colors">
-                    About Us
+                  <Link href="/help" className="hover:text-white">
+                    Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="hover:text-white transition-colors">
-                    Privacy
+                  <Link href="/docs" className="hover:text-white">
+                    Documentation
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-white transition-colors">
-                    Terms
+                  <Link href="/status" className="hover:text-white">
+                    Status
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-slate-800 text-sm">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p>© {new Date().getFullYear()} TradeLinx. All rights reserved.</p>
-              <div className="flex space-x-6 mt-4 md:mt-0">
-                <Link href="#" className="hover:text-white transition-colors">
-                  Twitter
-                </Link>
-                <Link href="#" className="hover:text-white transition-colors">
-                  LinkedIn
-                </Link>
-                <Link href="#" className="hover:text-white transition-colors">
-                  Instagram
-                </Link>
-              </div>
-            </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 TradingJournal. All rights reserved.</p>
           </div>
         </div>
       </footer>
