@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, RefreshCw, Settings, Trash2, AlertCircle, BarChart3, ListFilter, Clock, Wallet } from "lucide-react"
 import { fetchAccountById, fetchTrades, disconnectTradingAccount } from "@/lib/trading-actions"
 import { formatCurrency } from "@/lib/utils"
+import { MT5_CONFIG } from "@/lib/mt5-connection"
 
 export default function AccountDetailsClient({ accountId }: { accountId: string }) {
   const router = useRouter()
@@ -22,6 +23,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
   const [isLoading, setIsLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [apiStatus, setApiStatus] = useState<"idle" | "success" | "error">("idle")
 
   useEffect(() => {
     loadAccountData()
@@ -32,17 +34,52 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
     setError(null)
 
     try {
-      const accountData = await fetchAccountById(accountId)
-      if (!accountData) {
-        throw new Error("Account not found")
-      }
-      setAccount(accountData)
+      console.log(`[Account Details] Loading account data for: ${accountId}`)
+      console.log(`[Account Details] MT5_CONFIG:`, MT5_CONFIG)
 
-      console.log("Account data fetched:", accountData)
-      const tradesData = await fetchTrades(accountId)
-      setTrades(tradesData)
+      // Direct API call to bypass any caching or localStorage
+      const accountResponse = await fetch(`/api/mt5/account-info?accountId=${accountId}`, {
+        cache: "no-store",
+      })
+
+      if (!accountResponse.ok) {
+        const errorData = await accountResponse.json()
+        console.warn("[Account Details] API call failed:", errorData)
+
+        // Fallback to fetchAccountById which might use localStorage
+        const accountData = await fetchAccountById(accountId)
+        if (!accountData) {
+          throw new Error("Account not found")
+        }
+        setAccount(accountData)
+        setApiStatus("error")
+      } else {
+        const accountInfo = await accountResponse.json()
+        console.log("[Account Details] Account data from API:", accountInfo)
+
+        setAccount({
+          id: accountId,
+          ...accountInfo,
+        })
+        setApiStatus("success")
+      }
+
+      // Get trades directly from API
+      const tradesResponse = await fetch(`/api/mt5/history?accountId=${accountId}`, {
+        cache: "no-store",
+      })
+
+      if (tradesResponse.ok) {
+        const tradesData = await tradesResponse.json()
+        console.log("[Account Details] Trades data from API:", tradesData)
+        setTrades(tradesData.deals || [])
+      } else {
+        console.warn("[Account Details] Trades API call failed, falling back to fetchTrades")
+        const tradesData = await fetchTrades(accountId)
+        setTrades(tradesData)
+      }
     } catch (err: any) {
-      console.error("Error loading account data:", err)
+      console.error("[Account Details] Error loading account data:", err)
       setError(err.message || "Failed to load account data")
     } finally {
       setIsLoading(false)
@@ -61,6 +98,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ accountId }),
+        cache: "no-store",
       })
 
       console.log(`[Account Sync] API response status: ${response.status}`)
@@ -89,6 +127,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
 
       console.log("[Account Sync] Updated account:", updatedAccount)
       setAccount(updatedAccount)
+      setApiStatus("success")
 
       // Save to localStorage
       if (typeof window !== "undefined") {
@@ -101,6 +140,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
       console.log("[Account Sync] Fetching trade history...")
       const tradesResponse = await fetch(`/api/mt5/history?accountId=${accountId}`, {
         method: "GET",
+        cache: "no-store",
       })
 
       if (tradesResponse.ok) {
@@ -112,6 +152,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
       }
     } catch (err: any) {
       console.error("[Account Sync] Error syncing account:", err)
+      setApiStatus("error")
       alert(`Failed to sync account: ${err.message}`)
     } finally {
       setIsSyncing(false)
@@ -218,6 +259,15 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {apiStatus === "error" && (
+        <Alert variant="warning" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Using cached data. Could not connect to MT5 backend. Click "Sync Account" to try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => router.back()}>
@@ -308,6 +358,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
           <TabsTrigger value="trades">Trades</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -416,49 +467,6 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
                     </dd>
                   </div>
                 </dl>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Debug Information</CardTitle>
-                <CardDescription>Backend connection and API status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <dl className="space-y-4">
-                  <div className="flex justify-between">
-                    <dt className="font-medium">Backend URL</dt>
-                    <dd className="text-sm font-mono">{process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "Not configured"}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="font-medium">Account ID</dt>
-                    <dd className="text-sm font-mono">{accountId}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="font-medium">Data Source</dt>
-                    <dd className="text-sm">{account.lastSynced ? "Backend API" : "Local Storage"}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="font-medium">Last API Call</dt>
-                    <dd className="text-sm">
-                      {account.lastSynced ? new Date(account.lastSynced).toLocaleString() : "Never"}
-                    </dd>
-                  </div>
-                </dl>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 w-full"
-                  onClick={() => {
-                    console.log("Current account data:", account)
-                    console.log("Current trades data:", trades)
-                    console.log("Environment variables:", {
-                      MT5_BACKEND_URL: process.env.NEXT_PUBLIC_MT5_BACKEND_URL,
-                      NODE_ENV: process.env.NODE_ENV,
-                    })
-                  }}
-                >
-                  Log Debug Info to Console
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -639,6 +647,121 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="debug" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Debug Information</CardTitle>
+              <CardDescription>Technical details for troubleshooting</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="font-medium">Environment</h3>
+                <div className="grid gap-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Backend URL:</span>
+                    <span className="font-mono">{process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "Not set"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>API Status:</span>
+                    <Badge
+                      variant={apiStatus === "success" ? "success" : apiStatus === "error" ? "destructive" : "outline"}
+                    >
+                      {apiStatus === "success" ? "Connected" : apiStatus === "error" ? "Error" : "Unknown"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Data Source:</span>
+                    <span>{apiStatus === "success" ? "Live API" : "Local Storage"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium">Account Data</h3>
+                <pre className="bg-muted p-3 rounded text-xs overflow-auto max-h-40">
+                  {JSON.stringify(account, null, 2)}
+                </pre>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-medium">API Tests</h3>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/mt5/test-connection`)
+                        const data = await response.json()
+                        console.log("Backend connection test:", data)
+                        alert(
+                          `Backend connection test: ${data.isHealthy ? "Success" : "Failed"}\nSee console for details`,
+                        )
+                      } catch (err) {
+                        console.error("Test failed:", err)
+                        alert(`Test failed: ${err.message}`)
+                      }
+                    }}
+                  >
+                    Test Backend Connection
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/mt5/account-info?accountId=${accountId}`)
+                        const data = await response.json()
+                        console.log("Account info test:", data)
+                        alert(`Account info test: ${response.ok ? "Success" : "Failed"}\nSee console for details`)
+                      } catch (err) {
+                        console.error("Test failed:", err)
+                        alert(`Test failed: ${err.message}`)
+                      }
+                    }}
+                  >
+                    Test Account Info API
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/mt5/history?accountId=${accountId}`)
+                        const data = await response.json()
+                        console.log("History test:", data)
+                        alert(`History test: ${response.ok ? "Success" : "Failed"}\nSee console for details`)
+                      } catch (err) {
+                        console.error("Test failed:", err)
+                        alert(`Test failed: ${err.message}`)
+                      }
+                    }}
+                  >
+                    Test History API
+                  </Button>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  console.log("Current account data:", account)
+                  console.log("Current trades data:", trades)
+                  console.log("API status:", apiStatus)
+                  console.log("Environment variables:", {
+                    NEXT_PUBLIC_MT5_BACKEND_URL: process.env.NEXT_PUBLIC_MT5_BACKEND_URL,
+                  })
+                  alert("Debug information logged to console")
+                }}
+              >
+                Log Debug Info to Console
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

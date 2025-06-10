@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Missing accountId parameter" }, { status: 400 })
     }
 
-    console.log(`[MT5 API] Fetching account info for accountId: ${accountId}`)
+    console.log(`[MT5 API] GET Fetching account info for accountId: ${accountId}`)
     console.log(`[MT5 API] Backend URL: ${BACKEND_URL}`)
 
     try {
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ accountId }),
+        cache: "no-store",
       })
 
       console.log(`[MT5 API] Backend response status: ${response.status}`)
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing accountId in request body" }, { status: 400 })
     }
 
-    console.log(`[MT5 API] Fetching account info for accountId: ${accountId}`)
+    console.log(`[MT5 API] POST Fetching account info for accountId: ${accountId}`)
     console.log(`[MT5 API] Backend URL: ${BACKEND_URL}`)
 
     try {
@@ -79,6 +80,7 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ accountId }),
+        cache: "no-store",
       })
 
       console.log(`[MT5 API] Backend response status: ${response.status}`)

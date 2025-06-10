@@ -1,59 +1,66 @@
-// Test script to validate MetaTrader API connection
-// Run this script to verify that real account data is being retrieved
+// Test script to verify MT5 backend connection
+// Run with: node scripts/test-mt5-connection.js
 
-import { connectToMT5, fetchMT5AccountData, fetchMT5Trades } from '../lib/mt5-api-client';
+const BACKEND_URL = process.env.MT5_BACKEND_URL || process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "http://localhost:3001"
 
-// Configuration for testing
-const testConfig = {
-  server: 'demo.metaapi.cloud', // Replace with actual server if needed
-  login: '12345678',            // Replace with actual login if available
-  password: 'password123',      // Replace with actual password if available
-  isInvestor: true
-};
+async function testConnection() {
+  console.log(`Testing connection to MT5 backend at: ${BACKEND_URL}`)
 
-async function testMetaTraderConnection() {
-  console.log('Testing MetaTrader API connection...');
-  
   try {
-    // Step 1: Test connection
-    console.log('Step 1: Testing connection to MetaTrader server...');
-    const connected = await connectToMT5(testConfig);
-    console.log('Connection result:', connected ? 'SUCCESS' : 'FAILED');
-    
-    if (!connected) {
-      console.error('Failed to connect to MetaTrader server');
-      return;
-    }
-    
-    // Step 2: Fetch account data
-    console.log('\nStep 2: Fetching account data...');
+    // Test health endpoint
+    console.log("\nTesting health endpoint...")
+    const healthResponse = await fetch(`${BACKEND_URL}/health`)
+    const healthStatus = healthResponse.ok ? "OK" : "Failed"
+    console.log(`Health check: ${healthStatus} (${healthResponse.status})`)
+
     try {
-      const accountData = await fetchMT5AccountData(testConfig.server, testConfig.login);
-      console.log('Account data retrieved successfully:');
-      console.log(JSON.stringify(accountData, null, 2));
-    } catch (error) {
-      console.error('Error fetching account data:', error);
+      const healthData = await healthResponse.json()
+      console.log("Health response:", healthData)
+    } catch (e) {
+      const healthText = await healthResponse.text()
+      console.log("Health response:", healthText)
     }
-    
-    // Step 3: Fetch trades
-    console.log('\nStep 3: Fetching trade history...');
+
+    // Test account info endpoint
+    console.log("\nTesting account info endpoint...")
+    const accountResponse = await fetch(`${BACKEND_URL}/api/mt5/account-info`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ accountId: "test-account-123" }),
+    })
+
+    const accountStatus = accountResponse.ok ? "OK" : "Failed"
+    console.log(`Account info check: ${accountStatus} (${accountResponse.status})`)
+
     try {
-      const trades = await fetchMT5Trades(testConfig.server, testConfig.login);
-      console.log(`Retrieved ${trades.length} trades:`);
-      console.log(JSON.stringify(trades.slice(0, 2), null, 2)); // Show first 2 trades
-      if (trades.length > 2) {
-        console.log(`... and ${trades.length - 2} more trades`);
-      }
-    } catch (error) {
-      console.error('Error fetching trades:', error);
+      const accountData = await accountResponse.json()
+      console.log("Account info response:", accountData)
+    } catch (e) {
+      const accountText = await accountResponse.text()
+      console.log("Account info response:", accountText)
     }
-    
-    console.log('\nTest completed. Check the results above to verify real data is being retrieved.');
-    
+
+    // Test history endpoint
+    console.log("\nTesting history endpoint...")
+    const historyResponse = await fetch(`${BACKEND_URL}/api/mt5/history?accountId=test-account-123`)
+
+    const historyStatus = historyResponse.ok ? "OK" : "Failed"
+    console.log(`History check: ${historyStatus} (${historyResponse.status})`)
+
+    try {
+      const historyData = await historyResponse.json()
+      console.log("History response:", historyData)
+    } catch (e) {
+      const historyText = await historyResponse.text()
+      console.log("History response:", historyText)
+    }
+
+    console.log("\nTest complete!")
   } catch (error) {
-    console.error('Test failed with error:', error);
+    console.error("Connection test failed:", error)
   }
 }
 
-// Run the test
-testMetaTraderConnection();
+testConnection()
