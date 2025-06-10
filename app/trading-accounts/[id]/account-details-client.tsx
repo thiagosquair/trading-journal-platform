@@ -38,6 +38,7 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
       }
       setAccount(accountData)
 
+      console.log("Account data fetched:", accountData)
       const tradesData = await fetchTrades(accountId)
       setTrades(tradesData)
     } catch (err: any) {
@@ -51,31 +52,42 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
   const handleSyncAccount = async () => {
     setIsSyncing(true)
     try {
+      console.log(`[Account Sync] Starting sync for account: ${accountId}`)
+
       // Call the API to sync the account
-      const response = await fetch(`/api/mt5/account-info?accountId=${accountId}`, {
-        method: "GET",
+      const response = await fetch(`/api/mt5/account-info`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accountId }),
       })
+
+      console.log(`[Account Sync] API response status: ${response.status}`)
 
       if (!response.ok) {
         const errorData = await response.json()
+        console.error("[Account Sync] API error:", errorData)
         throw new Error(errorData.error || "Failed to sync account")
       }
 
       const accountInfo = await response.json()
+      console.log("[Account Sync] Account info received:", accountInfo)
 
       // Update the account with the latest data
       const updatedAccount = {
         ...account,
-        balance: accountInfo.balance,
-        equity: accountInfo.equity,
-        margin: accountInfo.margin,
-        freeMargin: accountInfo.freeMargin,
-        marginLevel: accountInfo.marginLevel,
-        currency: accountInfo.currency,
-        leverage: accountInfo.leverage,
+        balance: accountInfo.balance || account.balance,
+        equity: accountInfo.equity || account.equity,
+        margin: accountInfo.margin || account.margin,
+        freeMargin: accountInfo.freeMargin || account.freeMargin,
+        marginLevel: accountInfo.marginLevel || account.marginLevel,
+        currency: accountInfo.currency || account.currency,
+        leverage: accountInfo.leverage || account.leverage,
         lastSynced: new Date().toISOString(),
       }
 
+      console.log("[Account Sync] Updated account:", updatedAccount)
       setAccount(updatedAccount)
 
       // Save to localStorage
@@ -86,17 +98,21 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
       }
 
       // Reload trades
+      console.log("[Account Sync] Fetching trade history...")
       const tradesResponse = await fetch(`/api/mt5/history?accountId=${accountId}`, {
         method: "GET",
       })
 
       if (tradesResponse.ok) {
         const tradesData = await tradesResponse.json()
+        console.log("[Account Sync] Trades data received:", tradesData)
         setTrades(tradesData.deals || [])
+      } else {
+        console.warn("[Account Sync] Failed to fetch trades:", await tradesResponse.text())
       }
     } catch (err: any) {
-      console.error("Error syncing account:", err)
-      alert(err.message || "Failed to sync account")
+      console.error("[Account Sync] Error syncing account:", err)
+      alert(`Failed to sync account: ${err.message}`)
     } finally {
       setIsSyncing(false)
     }
@@ -400,6 +416,49 @@ export default function AccountDetailsClient({ accountId }: { accountId: string 
                     </dd>
                   </div>
                 </dl>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Debug Information</CardTitle>
+                <CardDescription>Backend connection and API status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-4">
+                  <div className="flex justify-between">
+                    <dt className="font-medium">Backend URL</dt>
+                    <dd className="text-sm font-mono">{process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "Not configured"}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="font-medium">Account ID</dt>
+                    <dd className="text-sm font-mono">{accountId}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="font-medium">Data Source</dt>
+                    <dd className="text-sm">{account.lastSynced ? "Backend API" : "Local Storage"}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="font-medium">Last API Call</dt>
+                    <dd className="text-sm">
+                      {account.lastSynced ? new Date(account.lastSynced).toLocaleString() : "Never"}
+                    </dd>
+                  </div>
+                </dl>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 w-full"
+                  onClick={() => {
+                    console.log("Current account data:", account)
+                    console.log("Current trades data:", trades)
+                    console.log("Environment variables:", {
+                      MT5_BACKEND_URL: process.env.NEXT_PUBLIC_MT5_BACKEND_URL,
+                      NODE_ENV: process.env.NODE_ENV,
+                    })
+                  }}
+                >
+                  Log Debug Info to Console
+                </Button>
               </CardContent>
             </Card>
           </div>

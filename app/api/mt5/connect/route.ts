@@ -1,75 +1,67 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// Backend service URL - in production, this should be an environment variable
-const BACKEND_URL = process.env.MT5_BACKEND_URL || "http://localhost:3001"
+const BACKEND_URL = process.env.MT5_BACKEND_URL || process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "http://localhost:3001"
 
-export async function POST(request: NextRequest ) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, server, login, password, saveCredentials } = body
+    const { accountId, login, password, server } = body
 
-    // Validate required fields
-    if (!name || !server || !login || !password) {
+    if (!accountId || !login || !password || !server) {
       return NextResponse.json(
-        { error: "Missing required fields: name, server, login, and password are required" },
+        { error: "Missing required fields: accountId, login, password, server" },
         { status: 400 },
       )
     }
 
-    console.log(`Connecting to MT5 account: ${login}@${server}`)
+    console.log(`[MT5 Connect] Connecting account: ${accountId} (${login}) to server: ${server}`)
+    console.log(`[MT5 Connect] Backend URL: ${BACKEND_URL}`)
 
     try {
-      // Make request to backend service
       const response = await fetch(`${BACKEND_URL}/api/mt5/connect`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          server,
-          login,
-          password
-        })
+        body: JSON.stringify({ accountId, login, password, server }),
       })
+
+      console.log(`[MT5 Connect] Backend response status: ${response.status}`)
 
       const data = await response.json()
+      console.log(`[MT5 Connect] Backend response:`, data)
 
       if (!response.ok) {
-        console.error("Backend service error:", data.error)
-        return NextResponse.json({ error: data.error || "Failed to connect to MT5" }, { status: response.status })
+        console.error("[MT5 Connect] Backend service error:", data.error)
+        return NextResponse.json(
+          { error: data.error || "Failed to connect to MT5 account" },
+          { status: response.status },
+        )
       }
 
-      if (!data.success) {
-        console.error("Failed to connect to MT5:", data.error)
-        return NextResponse.json({ error: data.error }, { status: 500 })
-      }
-
-      return NextResponse.json({
-        success: true,
-        accountId: data.accountId,
-        balance: data.balance,
-        equity: data.equity,
-        currency: data.currency,
-        leverage: data.leverage,
-        margin: data.margin,
-        freeMargin: data.freeMargin,
-        marginLevel: data.marginLevel,
-        message: data.message || "Connected to MT5 account successfully",
-      })
+      return NextResponse.json(data)
     } catch (fetchError: any) {
-      console.error("Error connecting to backend service:", fetchError)
-      
-      // If backend is not available, return a helpful error message
-      if (fetchError.code === 'ECONNREFUSED' || fetchError.message.includes('fetch')) {
-        return NextResponse.json({ 
-          error: "MT5 backend service is not available. Please ensure the backend server is running on port 3001." 
-        }, { status: 503 })
+      console.error("[MT5 Connect] Error connecting to backend service:", fetchError)
+      if (fetchError.code === "ECONNREFUSED" || fetchError.message.includes("fetch")) {
+        return NextResponse.json(
+          {
+            error: "MT5 backend service is not available. Please ensure the backend server is running.",
+            backendUrl: BACKEND_URL,
+            details: fetchError.message,
+          },
+          { status: 503 },
+        )
       }
-      
       throw fetchError
     }
   } catch (error: any) {
-    console.error("Error in MT5 connect API:", error)
-    return NextResponse.json({ error: error.message || "An unexpected error occurred" }, { status: 500 })
+    console.error("[MT5 Connect] Error in MT5 connect API:", error)
+    return NextResponse.json(
+      {
+        error: error.message || "An unexpected error occurred",
+        backendUrl: BACKEND_URL,
+      },
+      { status: 500 },
+    )
   }
 }
