@@ -1,116 +1,98 @@
 // /app/trading-accounts/mt5Connector.js
-import MetaApi from "metaapi.cloud-sdk"
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_MT5_BACKEND_URL || "http://localhost:3001";
 
 export class MT5Connector {
-  constructor(token) {
-    this.api = new MetaApi(token || process.env.META_API_TOKEN)
-    this.connections = {}
+  constructor() {
+    // No direct MetaAPI SDK usage here
   }
 
-  async connectToAccount(accountId) {
+  async connectToAccount(accountId, login, password, server) {
     try {
-      // Get account information
-      const account = await this.api.metatraderAccountApi.getAccount(accountId)
+      const response = await fetch(`${BACKEND_URL}/api/mt5/connect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accountId, login, password, server }),
+      });
+      const data = await response.json();
 
-      // Connect to the account
-      console.log(`Connecting to account ${accountId}...`)
-      const connection = await account.connect()
-
-      // Store the connection for later use
-      this.connections[accountId] = connection
-
-      console.log(`Connected to account ${accountId}`)
-      return connection
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to connect to account");
+      }
+      return data;
     } catch (error) {
-      console.error(`Error connecting to account ${accountId}:`, error)
-      throw error
+      console.error(`Error connecting to account ${accountId}:`, error);
+      throw error;
     }
   }
 
   async disconnectFromAccount(accountId) {
     try {
-      const connection = this.connections[accountId]
-      if (!connection) {
-        throw new Error(`Not connected to account ${accountId}`)
+      const response = await fetch(`${BACKEND_URL}/api/mt5/disconnect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to disconnect from account");
       }
-
-      // Close the connection
-      await connection.close()
-
-      // Remove from connections
-      delete this.connections[accountId]
-
-      console.log(`Disconnected from account ${accountId}`)
-      return true
+      return data;
     } catch (error) {
-      console.error(`Error disconnecting from account ${accountId}:`, error)
-      throw error
+      console.error(`Error disconnecting from account ${accountId}:`, error);
+      throw error;
     }
   }
 
   async getAccountInfo(accountId) {
     try {
-      const connection = this.connections[accountId]
-      if (!connection) {
-        throw new Error(`Not connected to account ${accountId}`)
+      const response = await fetch(`${BACKEND_URL}/api/mt5/account-info?accountId=${accountId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to get account info");
       }
-
-      // Wait for terminal state synchronization
-      await connection.waitSynchronized()
-
-      // Get account information
-      const accountInfo = connection.terminalState.accountInformation
-      return accountInfo
+      return data;
     } catch (error) {
-      console.error(`Error getting account info for ${accountId}:`, error)
-      throw error
+      console.error(`Error getting account info for ${accountId}:`, error);
+      throw error;
     }
   }
 
   async getHistory(accountId, startDate, endDate) {
     try {
-      const connection = this.connections[accountId]
-      if (!connection) {
-        throw new Error(`Not connected to account ${accountId}`)
+      const response = await fetch(`${BACKEND_URL}/api/mt5/history?accountId=${accountId}&startDate=${startDate}&endDate=${endDate}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to get history");
       }
-
-      // Wait for terminal state synchronization
-      await connection.waitSynchronized()
-
-      // Get history
-      const history = await connection.historyStorage.getDealsByTimeRange(new Date(startDate), new Date(endDate))
-
-      return history
+      return data;
     } catch (error) {
-      console.error(`Error getting history for ${accountId}:`, error)
-      throw error
+      console.error(`Error getting history for ${accountId}:`, error);
+      throw error;
     }
   }
 
+  // This method might need to be adjusted based on what your backend's /api/mt5/account-info returns
   async getLiveData(accountId) {
     try {
-      const connection = this.connections[accountId]
-      if (!connection) {
-        throw new Error(`Not connected to account ${accountId}`)
-      }
-
-      // Wait for terminal state synchronization
-      await connection.waitSynchronized()
-
-      // Subscribe to market data
-      return {
-        accountInfo: connection.terminalState.accountInformation,
-        positions: connection.terminalState.positions,
-        orders: connection.terminalState.orders,
-        // Add more data as needed
-      }
+      const accountInfo = await this.getAccountInfo(accountId);
+      // Assuming accountInfo contains all necessary live data, or you might need more specific backend calls
+      return accountInfo;
     } catch (error) {
-      console.error(`Error getting live data for ${accountId}:`, error)
-      throw error
+      console.error(`Error getting live data for ${accountId}:`, error);
+      throw error;
     }
   }
 }
 
 // Create a singleton instance
-const metaApiToken = process.env.META_API_TOKEN
-export const mt5Connector = new MT5Connector(metaApiToken)
+export const mt5Connector = new MT5Connector();
+
+
