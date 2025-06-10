@@ -39,7 +39,7 @@ export default function LandingPage() {
       {/* Announcement Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 text-center relative">
         <p className="text-sm font-medium">
-          TradeLinx Pro is now live! 🚀{" "}
+          TradeLinx Pro is Now live! 🚀{" "}
           <Link href="/pricing" className="underline ml-1">
             Check it out here!
           </Link>
