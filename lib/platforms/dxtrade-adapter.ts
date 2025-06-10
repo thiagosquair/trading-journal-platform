@@ -14,10 +14,10 @@ export class DXtradeAdapter implements PlatformAdapter {
 
       // Connect to DXtrade API
       const success = await dxtradeApiClient.authenticate({
-        login: credentials.login,
-        username: credentials.username,
+        login: credentials.login || "",
         password: credentials.password || "",
         apiKey: credentials.apiKey,
+        server: credentials.demo ? "demo" : "live",
       })
 
       this.isConnected = success
@@ -43,6 +43,7 @@ export class DXtradeAdapter implements PlatformAdapter {
         id: `dxtrade-${accountInfo.accountId}`,
         name: this.credentials?.name || accountInfo.name,
         platform: "DXtrade",
+        broker: accountInfo.server,
         accountNumber: accountInfo.accountId,
         balance: accountInfo.balance,
         equity: accountInfo.equity,
@@ -84,15 +85,15 @@ export class DXtradeAdapter implements PlatformAdapter {
           symbol: position.symbol,
           direction: position.type === "buy" ? "long" : "short",
           openDate: position.openTime,
-          closeDate: position.closeTime,
+          closeDate: null,
           openPrice: position.openPrice,
-          closePrice: position.closePrice,
+          closePrice: null,
           size: position.volume,
           profit: position.profit,
           profitPercent: position.profit
             ? Number.parseFloat(((position.profit / (position.openPrice * position.volume * 100)) * 100).toFixed(2))
             : undefined,
-          status: position.closePrice ? "closed" : "open",
+          status: "open",
           stopLoss: position.stopLoss || undefined,
           takeProfit: position.takeProfit || undefined,
           tags: ["dxtrade", position.symbol.toLowerCase()],
@@ -111,7 +112,7 @@ export class DXtradeAdapter implements PlatformAdapter {
           profitPercent: trade.profit
             ? Number.parseFloat(((trade.profit / (trade.openPrice * trade.volume * 100)) * 100).toFixed(2))
             : undefined,
-          status: trade.closePrice ? "closed" : "open",
+          status: "closed",
           stopLoss: trade.stopLoss || undefined,
           takeProfit: trade.takeProfit || undefined,
           tags: ["dxtrade", trade.symbol.toLowerCase()],

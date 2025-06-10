@@ -2,13 +2,19 @@
 
 // Types
 interface DXtradeCredentials {
-  login?: string
-  username?: string
+  login: string
   password: string
   apiKey?: string
+  server?: string
 }
 
-interface DXtradeAccount {
+interface DXtradeAuthResponse {
+  token: string
+  expiresAt: number
+  accountId: string
+}
+
+interface DXtradeAccountInfo {
   accountId: string
   name: string
   balance: number
@@ -23,84 +29,127 @@ interface DXtradeAccount {
   lastUpdated: string
 }
 
-interface DXtradeTrade {
+interface DXtradePosition {
   id: string
   symbol: string
-  type: string
+  type: "buy" | "sell"
   volume: number
   openPrice: number
-  closePrice: number | null
-  openTime: string
-  closeTime: string | null
+  currentPrice: number
   stopLoss: number | null
   takeProfit: number | null
-  profit: number | null
-  commission: number
+  profit: number
   swap: number
-  comment: string
+  commission: number
+  openTime: string
+}
+
+interface DXtradeHistoryOrder {
+  id: string
+  symbol: string
+  type: "buy" | "sell"
+  volume: number
+  openPrice: number
+  closePrice: number
+  stopLoss: number | null
+  takeProfit: number | null
+  profit: number
+  swap: number
+  commission: number
+  openTime: string
+  closeTime: string
+}
+
+interface DXtradeSymbol {
+  name: string
+  description: string
+  digits: number
+  minVolume: number
+  maxVolume: number
+  volumeStep: number
+  type: string
 }
 
 // API endpoints
-const API_BASE_URL = "https://api.dxtrade.com" // Replace with actual API URL
+const API_BASE_URL = "https://api.dx.trade" // Will be replaced with actual endpoint
 
-// API client
-export class DXtradeApiClient {
+class DXtradeApiClient {
   private token: string | null = null
-  private credentials: DXtradeCredentials | null = null
+  private tokenExpiry = 0
+  private accountId: string | null = null
+  private server = "demo"
 
   constructor() {
-    this.token = null
-    this.credentials = null
+    // Initialize with no authentication
   }
 
-  // Authenticate with DXtrade API
+  /**
+   * Authenticate with DXtrade API
+   * @param credentials Login credentials
+   * @returns Success status
+   */
   async authenticate(credentials: DXtradeCredentials): Promise<boolean> {
     try {
-      // In a real implementation, this would make an API call to authenticate
-      console.log("Authenticating with DXtrade API:", credentials)
+      console.log("Authenticating with DXtrade API", {
+        login: credentials.login,
+        server: credentials.server || this.server,
+      })
 
-      // For demo purposes, we'll simulate the API call
+      // In a real implementation, this would make an API call
+      // For now, we'll simulate the authentication process
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Check if credentials are valid
-      if (credentials.login === "634733" && credentials.username === "fff_C12024") {
-        this.token = "mock-token-" + Date.now()
-        this.credentials = credentials
+      // Simulate successful authentication for specific test accounts
+      if (credentials.login === "dxtest" && credentials.password === "dxpassword") {
+        this.token = `demo-token-${Date.now()}`
+        this.tokenExpiry = Date.now() + 3600000 // 1 hour
+        this.accountId = "DX123456"
+        this.server = credentials.server || "demo"
         return true
       }
 
-      // Also accept test credentials
-      if (credentials.login === "dxtest" && credentials.password === "dxpassword") {
-        this.token = "mock-token-" + Date.now()
-        this.credentials = credentials
+      // Simulate a real account
+      if (credentials.login === "634733" && credentials.password) {
+        this.token = `live-token-${Date.now()}`
+        this.tokenExpiry = Date.now() + 3600000 // 1 hour
+        this.accountId = credentials.login
+        this.server = credentials.server || "live"
         return true
       }
 
       return false
     } catch (error) {
       console.error("DXtrade authentication error:", error)
-      throw error
+      return false
     }
   }
 
-  // Get account information
-  async getAccountInfo(): Promise<DXtradeAccount> {
-    if (!this.token) {
-      throw new Error("Not authenticated")
+  /**
+   * Check if the current token is valid
+   */
+  private isAuthenticated(): boolean {
+    return !!this.token && Date.now() < this.tokenExpiry
+  }
+
+  /**
+   * Get account information
+   */
+  async getAccountInfo(): Promise<DXtradeAccountInfo> {
+    if (!this.isAuthenticated()) {
+      throw new Error("Not authenticated with DXtrade API")
     }
 
     try {
-      // In a real implementation, this would make an API call to get account info
-      console.log("Getting DXtrade account info")
+      console.log("Fetching DXtrade account info")
 
-      // For demo purposes, we'll simulate the API call
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 800))
 
-      // Return mock data based on the account
-      if (this.credentials?.login === "634733") {
+      // Return mock data based on the account type
+      if (this.server === "live") {
         return {
-          accountId: "634733",
-          name: "DXtrade Pro Account",
+          accountId: this.accountId || "634733",
+          name: "DXtrade Live Account",
           balance: 25432.78,
           equity: 25678.45,
           margin: 2500,
@@ -109,15 +158,15 @@ export class DXtradeApiClient {
           currency: "USD",
           leverage: "1:100",
           openPositions: 3,
-          server: "Gooey Trade",
+          server: "DXtrade Live",
           lastUpdated: new Date().toISOString(),
         }
       }
 
-      // Default test account
+      // Demo account
       return {
-        accountId: this.credentials?.login || "dxtest",
-        name: "DXtrade Test Account",
+        accountId: this.accountId || "DX123456",
+        name: "DXtrade Demo Account",
         balance: 10000,
         equity: 10250,
         margin: 1000,
@@ -130,242 +179,262 @@ export class DXtradeApiClient {
         lastUpdated: new Date().toISOString(),
       }
     } catch (error) {
-      console.error("Error getting DXtrade account info:", error)
+      console.error("Error fetching DXtrade account info:", error)
       throw error
     }
   }
 
-  // Get open positions
-  async getOpenPositions(): Promise<DXtradeTrade[]> {
-    if (!this.token) {
-      throw new Error("Not authenticated")
+  /**
+   * Get open positions
+   */
+  async getOpenPositions(): Promise<DXtradePosition[]> {
+    if (!this.isAuthenticated()) {
+      throw new Error("Not authenticated with DXtrade API")
     }
 
     try {
-      // In a real implementation, this would make an API call to get open positions
-      console.log("Getting DXtrade open positions")
+      console.log("Fetching DXtrade open positions")
 
-      // For demo purposes, we'll simulate the API call
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Return mock data based on the account
-      if (this.credentials?.login === "634733") {
+      // Return mock data based on the account type
+      if (this.server === "live") {
         return [
           {
-            id: "dxtrade-position-1",
+            id: "p123456",
             symbol: "EURUSD",
             type: "buy",
             volume: 1.0,
             openPrice: 1.0825,
-            closePrice: null,
-            openTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            closeTime: null,
+            currentPrice: 1.0845,
             stopLoss: 1.0775,
             takeProfit: 1.0925,
             profit: 125,
             commission: 0,
             swap: -2.5,
-            comment: "",
+            openTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
           },
           {
-            id: "dxtrade-position-2",
+            id: "p123457",
             symbol: "GBPUSD",
             type: "sell",
             volume: 0.5,
             openPrice: 1.265,
-            closePrice: null,
-            openTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            closeTime: null,
+            currentPrice: 1.262,
             stopLoss: 1.27,
             takeProfit: 1.255,
             profit: 75,
             commission: 0,
             swap: -1.5,
-            comment: "",
-          },
-          {
-            id: "dxtrade-position-3",
-            symbol: "XAUUSD",
-            type: "buy",
-            volume: 0.1,
-            openPrice: 2100.0,
-            closePrice: null,
-            openTime: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-            closeTime: null,
-            stopLoss: 2080.0,
-            takeProfit: 2150.0,
-            profit: 45.5,
-            commission: 0,
-            swap: -3.5,
-            comment: "",
+            openTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
           },
         ]
       }
 
-      // Default test account
+      // Demo account
       return [
         {
-          id: "dxtrade-position-1",
+          id: "p789012",
           symbol: "EURUSD",
           type: "buy",
           volume: 0.5,
           openPrice: 1.085,
-          closePrice: null,
-          openTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-          closeTime: null,
+          currentPrice: 1.086,
           stopLoss: 1.08,
           takeProfit: 1.09,
           profit: 25,
           commission: 0,
           swap: -1.5,
-          comment: "",
+          openTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-          id: "dxtrade-position-2",
+          id: "p789013",
           symbol: "USDJPY",
           type: "sell",
           volume: 0.3,
           openPrice: 154.5,
-          closePrice: null,
-          openTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          closeTime: null,
+          currentPrice: 154.7,
           stopLoss: 155.0,
           takeProfit: 153.5,
           profit: -15,
           commission: 0,
           swap: -0.8,
-          comment: "",
+          openTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         },
       ]
     } catch (error) {
-      console.error("Error getting DXtrade open positions:", error)
+      console.error("Error fetching DXtrade open positions:", error)
       throw error
     }
   }
 
-  // Get trade history
-  async getTradeHistory(from: Date, to: Date): Promise<DXtradeTrade[]> {
-    if (!this.token) {
-      throw new Error("Not authenticated")
+  /**
+   * Get trade history
+   */
+  async getTradeHistory(from: Date, to: Date): Promise<DXtradeHistoryOrder[]> {
+    if (!this.isAuthenticated()) {
+      throw new Error("Not authenticated with DXtrade API")
     }
 
     try {
-      // In a real implementation, this would make an API call to get trade history
-      console.log("Getting DXtrade trade history:", { from, to })
+      console.log("Fetching DXtrade trade history", { from, to })
 
-      // For demo purposes, we'll simulate the API call
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1200))
 
-      // Return mock data based on the account
-      if (this.credentials?.login === "634733") {
+      // Return mock data based on the account type
+      if (this.server === "live") {
         return [
           {
-            id: "dxtrade-trade-1",
+            id: "o123456",
             symbol: "EURUSD",
             type: "buy",
             volume: 1.0,
             openPrice: 1.075,
             closePrice: 1.082,
-            openTime: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-            closeTime: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
             stopLoss: 1.07,
             takeProfit: 1.085,
             profit: 700,
             commission: 0,
             swap: -5.5,
-            comment: "",
+            openTime: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+            closeTime: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
           },
           {
-            id: "dxtrade-trade-2",
+            id: "o123457",
             symbol: "GBPUSD",
             type: "sell",
             volume: 0.5,
             openPrice: 1.28,
             closePrice: 1.275,
-            openTime: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-            closeTime: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
             stopLoss: 1.285,
             takeProfit: 1.27,
             profit: 250,
             commission: 0,
             swap: -3.2,
-            comment: "",
-          },
-          {
-            id: "dxtrade-trade-3",
-            symbol: "USDJPY",
-            type: "buy",
-            volume: 0.75,
-            openPrice: 152.5,
-            closePrice: 152.25,
-            openTime: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-            closeTime: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString(),
-            stopLoss: 152.0,
-            takeProfit: 153.0,
-            profit: -187.5,
-            commission: 0,
-            swap: -4.5,
-            comment: "",
+            openTime: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+            closeTime: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
           },
         ]
       }
 
-      // Default test account
+      // Demo account
       return [
         {
-          id: "dxtrade-trade-1",
+          id: "o789012",
           symbol: "EURUSD",
           type: "buy",
           volume: 0.5,
           openPrice: 1.08,
           closePrice: 1.085,
-          openTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          closeTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
           stopLoss: 1.075,
           takeProfit: 1.09,
           profit: 25,
           commission: 0,
           swap: -1.5,
-          comment: "",
+          openTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          closeTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-          id: "dxtrade-trade-2",
+          id: "o789013",
           symbol: "GBPUSD",
           type: "sell",
           volume: 0.3,
           openPrice: 1.27,
           closePrice: 1.265,
-          openTime: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-          closeTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           stopLoss: 1.275,
           takeProfit: 1.26,
           profit: 15,
           commission: 0,
           swap: -0.8,
-          comment: "",
+          openTime: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+          closeTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
         },
       ]
     } catch (error) {
-      console.error("Error getting DXtrade trade history:", error)
+      console.error("Error fetching DXtrade trade history:", error)
       throw error
     }
   }
 
-  // Logout
+  /**
+   * Get available symbols
+   */
+  async getSymbols(): Promise<DXtradeSymbol[]> {
+    if (!this.isAuthenticated()) {
+      throw new Error("Not authenticated with DXtrade API")
+    }
+
+    try {
+      console.log("Fetching DXtrade symbols")
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Return mock symbols data
+      return [
+        {
+          name: "EURUSD",
+          description: "Euro vs US Dollar",
+          digits: 5,
+          minVolume: 0.01,
+          maxVolume: 100,
+          volumeStep: 0.01,
+          type: "forex",
+        },
+        {
+          name: "GBPUSD",
+          description: "Great Britain Pound vs US Dollar",
+          digits: 5,
+          minVolume: 0.01,
+          maxVolume: 100,
+          volumeStep: 0.01,
+          type: "forex",
+        },
+        {
+          name: "USDJPY",
+          description: "US Dollar vs Japanese Yen",
+          digits: 3,
+          minVolume: 0.01,
+          maxVolume: 100,
+          volumeStep: 0.01,
+          type: "forex",
+        },
+        {
+          name: "XAUUSD",
+          description: "Gold vs US Dollar",
+          digits: 2,
+          minVolume: 0.01,
+          maxVolume: 100,
+          volumeStep: 0.01,
+          type: "metal",
+        },
+      ]
+    } catch (error) {
+      console.error("Error fetching DXtrade symbols:", error)
+      throw error
+    }
+  }
+
+  /**
+   * Logout from DXtrade API
+   */
   async logout(): Promise<void> {
     if (!this.token) {
       return
     }
 
     try {
-      // In a real implementation, this would make an API call to logout
       console.log("Logging out from DXtrade API")
 
-      // For demo purposes, we'll simulate the API call
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500))
 
+      // Reset authentication state
       this.token = null
-      this.credentials = null
+      this.tokenExpiry = 0
+      this.accountId = null
     } catch (error) {
       console.error("Error logging out from DXtrade API:", error)
       throw error

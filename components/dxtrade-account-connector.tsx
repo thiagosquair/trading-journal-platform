@@ -38,9 +38,9 @@ export default function DXtradeAccountConnector() {
       // Test connection using the API client
       const success = await dxtradeApiClient.authenticate({
         login: loginRef.current.value,
-        username: usernameRef.current?.value,
         password: passwordRef.current.value,
         apiKey: apiKeyRef.current?.value,
+        server: accountType === "demo" ? "demo" : "live",
       })
 
       if (success) {
@@ -77,9 +77,9 @@ export default function DXtradeAccountConnector() {
       // Connect using the API client
       const success = await dxtradeApiClient.authenticate({
         login: loginRef.current.value,
-        username: usernameRef.current?.value,
         password: passwordRef.current.value,
         apiKey: apiKeyRef.current?.value,
+        server: accountType === "demo" ? "demo" : "live",
       })
 
       if (!success) {
@@ -104,6 +104,7 @@ export default function DXtradeAccountConnector() {
         lastUpdated: accountInfo.lastUpdated,
         openPositions: accountInfo.openPositions,
         server: accountInfo.server,
+        broker: accountInfo.server,
       }
 
       // Get trades
@@ -121,12 +122,12 @@ export default function DXtradeAccountConnector() {
           symbol: position.symbol,
           direction: position.type === "buy" ? "long" : "short",
           openTime: position.openTime,
-          closeTime: position.closeTime,
+          closeTime: null,
           openPrice: position.openPrice,
-          closePrice: position.closePrice,
+          closePrice: null,
           size: position.volume,
           profit: position.profit,
-          status: position.closePrice ? "closed" : "open",
+          status: "open",
           stopLoss: position.stopLoss || undefined,
           takeProfit: position.takeProfit || undefined,
         })),
@@ -141,7 +142,7 @@ export default function DXtradeAccountConnector() {
           closePrice: trade.closePrice,
           size: trade.volume,
           profit: trade.profit,
-          status: trade.closePrice ? "closed" : "open",
+          status: "closed",
           stopLoss: trade.stopLoss || undefined,
           takeProfit: trade.takeProfit || undefined,
         })),

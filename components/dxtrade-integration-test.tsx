@@ -42,7 +42,7 @@ export function DXtradeIntegrationTest() {
     try {
       const fetchedAccounts = await fetchTradingAccounts()
       // Filter to only show DXtrade accounts
-      const dxtradeAccounts = fetchedAccounts.filter((acc) => acc.broker === "Gooey Trade")
+      const dxtradeAccounts = fetchedAccounts.filter((acc) => acc.platform === "DXtrade")
       setAccounts(dxtradeAccounts)
 
       if (dxtradeAccounts.length > 0 && !selectedAccount) {
@@ -81,9 +81,9 @@ export function DXtradeIntegrationTest() {
       await connectTradingAccount({
         platform: "dxtrade",
         name: "DXtrade Standard Account",
-        login: "123456", // Standard demo account
-        password: "demo123",
-        broker: "Gooey Trade",
+        login: "dxtest",
+        password: "dxpassword",
+        demo: true,
       })
 
       setSuccess("Successfully connected DXtrade Standard Account")
@@ -106,9 +106,9 @@ export function DXtradeIntegrationTest() {
       await connectTradingAccount({
         platform: "dxtrade",
         name: "DXtrade Pro Account",
-        login: "634733", // The account credentials provided earlier
-        password: "p4S&cFn!7",
-        broker: "Gooey Trade",
+        login: "634733",
+        password: "p4S&cFn!7", // This should be entered by the user in a real scenario
+        demo: false,
       })
 
       setSuccess("Successfully connected DXtrade Pro Account")
@@ -232,7 +232,7 @@ export function DXtradeIntegrationTest() {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle>{account.name}</CardTitle>
-                      <CardDescription>{account.broker}</CardDescription>
+                      <CardDescription>{account.broker || account.server}</CardDescription>
                     </div>
                     <Badge
                       variant="outline"
